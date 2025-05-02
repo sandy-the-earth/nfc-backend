@@ -5,51 +5,48 @@ const Profile = require('../models/Profile');
 // GET public profile by activation code
 router.get('/:activationCode', async (req, res) => {
   try {
-    const p = await Profile.findOne({ activationCode: req.params.activationCode });
-    if (!p) {
+    const profile = await Profile.findOne({ activationCode: req.params.activationCode });
+
+    if (!profile) {
       return res.status(404).json({ message: 'Profile not found' });
     }
 
-    // Destructure your stored fields
     const {
       bannerUrl,
       avatarUrl,
-      ownerName,     // if your schema uses ownerName for the person's name
-      name,          // or name, whichever you use
+      ownerName,
+      name,
       title,
       subtitle,
-      bio,
       location,
       tags,
       phone,
       website,
       ownerEmail,
-      socialLinks = {},  // should contain instagram, linkedin, twitter
+      socialLinks = {},
       createdAt
-    } = p;
+    } = profile;
 
-    // Shape exactly what the UI needs
     res.json({
       bannerUrl,
       avatarUrl,
-      name: ownerName || name,
-      title,
-      subtitle,
-      bio,
-      location,
-      tags,
-      phone,
-      website,
-      email: ownerEmail,            // normalized field
+      name: ownerName || name || '',       // fallback if one is missing
+      title: title || '',
+      subtitle: subtitle || '',
+      location: location || '',
+      tags: Array.isArray(tags) ? tags : [],
+      phone: phone || '',
+      website: website || '',
+      email: ownerEmail || '',
       socialLinks: {
-        instagram: socialLinks.instagram,
-        linkedin:  socialLinks.linkedin,
-        twitter:   socialLinks.twitter
+        instagram: socialLinks.instagram || '',
+        linkedin: socialLinks.linkedin || '',
+        twitter: socialLinks.twitter || ''
       },
       createdAt
     });
   } catch (err) {
-    console.error('Public profile error:', err);
+    console.error('❌ Public profile fetch error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
