@@ -17,7 +17,19 @@ const publicProfileRoutes = require('./routes/publicProfile');
 const app = express();
 
 // Middleware
-app.use(cors());
+const allowedOrigins = ['https://nfc-frontend-pearl.vercel.app'];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
+
 app.use(express.json());
 
 // Serve static uploads
