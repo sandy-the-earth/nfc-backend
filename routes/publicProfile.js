@@ -14,7 +14,6 @@ router.get('/:activationCode', async (req, res) => {
     const {
       bannerUrl,
       avatarUrl,
-      ownerName,
       name,
       title,
       subtitle,
@@ -30,7 +29,7 @@ router.get('/:activationCode', async (req, res) => {
     res.json({
       bannerUrl,
       avatarUrl,
-      name: ownerName || name || '',       // fallback if one is missing
+      name: name || '',
       title: title || '',
       subtitle: subtitle || '',
       location: location || '',

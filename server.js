@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
-// Load env
+// Load environment variables
 dotenv.config();
 
 // Import routes
@@ -14,38 +14,38 @@ const loginRoutes = require('./routes/login');
 const profileRoutes = require('./routes/profile');
 const publicProfileRoutes = require('./routes/publicProfile');
 
-// Initialize app
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Serve uploads statically
+// Serve static uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Mount API routes BEFORE static fallback
-app.use('/api/admin', adminRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/login', loginRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/public', publicProfileRoutes);
+// Route prefixes (✅ separates conflicting dynamic routes)
+app.use('/api/admin', adminRoutes);           // Admin tools
+app.use('/api/auth', authRoutes);             // Activation
+app.use('/api/login', loginRoutes);           // Login
+app.use('/api/profile', profileRoutes);       // Authenticated profile (by ID)
+app.use('/api/public', publicProfileRoutes);  // Public view (by activation code)
 
-// Serve frontend build
-app.use(express.static(path.join(__dirname, 'build')));
-
-// Wildcard fallback (React Router)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+// Fallback route for undefined endpoints
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
 });
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => {
-  console.log('✅ MongoDB connected');
-  app.listen(5000, () => console.log('🚀 Server running at http://localhost:5000'));
-})
-.catch(err => {
-  console.error('❌ MongoDB connection error:', err);
-});
+// Connect to MongoDB and start server
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log('✅ MongoDB connected');
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+  })
+  .catch((err) => {
+    console.error('❌ MongoDB connection error:', err);
+  });
