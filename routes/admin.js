@@ -4,6 +4,10 @@ const express = require('express');
 const router = express.Router();
 const Profile = require('../models/Profile');
 const { Parser } = require('json2csv');
+const adminAuth = require('../middleware/adminAuth');
+
+// Apply admin authentication to all admin routes
+router.use(adminAuth);
 
 // Helper to generate a unique activation code
 function generateActivationCode(length = 8) {
@@ -13,7 +17,7 @@ function generateActivationCode(length = 8) {
     code = Array.from({ length }, () =>
       chars.charAt(Math.floor(Math.random() * chars.length))
     ).join('');
-  } while (false); // uniqueness checked below
+  } while (false);
   return code;
 }
 
@@ -80,7 +84,6 @@ router.put('/set-status/:id', async (req, res) => {
     if (!['active', 'pending_activation'].includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
     }
-
     const profile = await Profile.findByIdAndUpdate(
       req.params.id,
       { status },
@@ -89,7 +92,6 @@ router.put('/set-status/:id', async (req, res) => {
     if (!profile) {
       return res.status(404).json({ message: 'Profile not found' });
     }
-
     res.json({ message: `Status updated to '${status}'`, profile });
   } catch (err) {
     console.error('Admin: error setting status', err);
