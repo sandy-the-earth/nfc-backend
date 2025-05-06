@@ -13,7 +13,7 @@ function generateActivationCode(length = 8) {
     code = Array.from({ length }, () =>
       chars.charAt(Math.floor(Math.random() * chars.length))
     ).join('');
-  } while (false); // we'll check uniqueness below
+  } while (false); // uniqueness checked below
   return code;
 }
 
@@ -21,9 +21,7 @@ function generateActivationCode(length = 8) {
 // POST /api/admin/create-profile
 router.post('/create-profile', async (req, res) => {
   try {
-    let activationCode;
-    let existing;
-    // Keep generating until unique
+    let activationCode, existing;
     do {
       activationCode = generateActivationCode();
       existing = await Profile.findOne({ activationCode });
@@ -31,7 +29,6 @@ router.post('/create-profile', async (req, res) => {
 
     const profile = new Profile({ activationCode });
     await profile.save();
-
     res.status(201).json({ activationCode });
   } catch (err) {
     console.error('Admin: error creating profile', err);
@@ -64,24 +61,38 @@ router.get('/profiles', async (req, res) => {
         .limit(Number(limit)),
       Profile.countDocuments(filter)
     ]);
-    res.json({ data: profiles, meta: { total, page: Number(page), limit: Number(limit) } });
+    res.json({
+      data: profiles,
+      meta: { total, page: Number(page), limit: Number(limit) }
+    });
   } catch (err) {
     console.error('Admin: error listing profiles', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// ─── TOGGLE PROFILE STATUS ────────────────────────────────────────────
-// PUT /api/admin/toggle-status/:id
-router.put('/toggle-status/:id', async (req, res) => {
+// ─── SET PROFILE STATUS ──────────────────────────────────────────────
+// PUT /api/admin/set-status/:id
+// Body: { status: 'active' | 'pending_activation' }
+router.put('/set-status/:id', async (req, res) => {
   try {
-    const profile = await Profile.findById(req.params.id);
-    if (!profile) return res.status(404).json({ message: 'Profile not found' });
-    profile.status = profile.status === 'active' ? 'pending_activation' : 'active';
-    await profile.save();
-    res.json({ message: 'Status updated', status: profile.status });
+    const { status } = req.body;
+    if (!['active', 'pending_activation'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const profile = await Profile.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    if (!profile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+
+    res.json({ message: `Status updated to '${status}'`, profile });
   } catch (err) {
-    console.error('Admin: error toggling status', err);
+    console.error('Admin: error setting status', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -91,7 +102,9 @@ router.put('/toggle-status/:id', async (req, res) => {
 router.delete('/profiles/:id', async (req, res) => {
   try {
     const result = await Profile.findByIdAndDelete(req.params.id);
-    if (!result) return res.status(404).json({ message: 'Profile not found' });
+    if (!result) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
     res.json({ message: 'Profile deleted' });
   } catch (err) {
     console.error('Admin: error deleting profile', err);
