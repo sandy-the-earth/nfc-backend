@@ -4,7 +4,7 @@ const express = require('express');
 const router = express.Router();
 const Profile = require('../models/Profile');
 const { Parser } = require('json2csv');
-const adminAuth = require('../middleware/adminAuth');
+const adminAuth = require('../middleware/adminauth');
 
 // Apply admin authentication to all admin routes
 router.use(adminAuth);
