@@ -1,4 +1,3 @@
-// routes/login.js
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
@@ -10,29 +9,40 @@ router.post('/', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1. Check all fields
+    // 1. Validate fields
     if (!email || !password) {
-      return res.status(400).json({ message: 'All fields are required' });
+      return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    // 2. Find profile by email
+    // 2. Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    // 3. Validate password strength
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+    }
+
+    // 4. Look up profile
     const profile = await Profile.findOne({ ownerEmail: email });
     if (!profile) {
       return res.status(404).json({ message: 'No profile found with this email' });
     }
 
-    // 3. Check profile is active
+    // 5. Ensure profile is active
     if (profile.status !== 'active') {
-      return res.status(400).json({ message: 'Profile is not activated' });
+      return res.status(400).json({ message: 'Profile is not activated yet' });
     }
 
-    // 4. Compare password
+    // 6. Compare password
     const isMatch = await bcrypt.compare(password, profile.ownerPasswordHash);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid password' });
+      return res.status(401).json({ message: 'Incorrect password' });
     }
 
-    // 5. Login successful
+    // 7. Success
     return res.status(200).json({
       message: 'Login successful',
       profileId: profile._id,

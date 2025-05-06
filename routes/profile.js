@@ -3,24 +3,20 @@ const router = express.Router();
 const Profile = require('../models/Profile');
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const cloudinary = require('../utils/cloudinary');
+const cloudinary = require('../utils/cloudinary'); // Cloudinary instance you've configured
 
-// Setup Cloudinary Storage
+// 🔹 Cloudinary Storage Setup
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: async (req, file) => {
-    return {
-      folder: 'nfc-profiles',
-      public_id: `${req.params.id}-${file.fieldname}`,
-      resource_type: 'image',
-    };
-  },
+  params: async (req, file) => ({
+    folder: 'nfc-profiles',
+    public_id: `${req.params.id}-${file.fieldname}`,
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+  }),
 });
-
 const upload = multer({ storage });
 
-
-// 🔹 Get profile by ID
+// 🔹 GET profile by ID
 router.get('/:id', async (req, res) => {
   try {
     const profile = await Profile.findById(req.params.id);
@@ -32,8 +28,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-
-// 🔹 Update profile info
+// 🔹 UPDATE profile info
 router.put('/:id', async (req, res) => {
   try {
     const {
@@ -58,33 +53,32 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-
-// 🔹 Upload avatar to Cloudinary
+// 🔹 UPLOAD avatar
 router.post('/:id/avatar', upload.single('avatar'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
-  const url = req.file.path; // Cloudinary returns hosted URL
+  if (!req.file || !req.file.path) {
+    return res.status(400).json({ message: 'No file uploaded or upload failed' });
+  }
   try {
-    await Profile.findByIdAndUpdate(req.params.id, { avatarUrl: url });
-    res.json({ url });
+    await Profile.findByIdAndUpdate(req.params.id, { avatarUrl: req.file.path });
+    res.json({ url: req.file.path });
   } catch (err) {
     console.error('Avatar upload failed:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-
-// 🔹 Upload banner to Cloudinary
+// 🔹 UPLOAD banner
 router.post('/:id/banner', upload.single('banner'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
-  const url = req.file.path;
+  if (!req.file || !req.file.path) {
+    return res.status(400).json({ message: 'No file uploaded or upload failed' });
+  }
   try {
-    await Profile.findByIdAndUpdate(req.params.id, { bannerUrl: url });
-    res.json({ url });
+    await Profile.findByIdAndUpdate(req.params.id, { bannerUrl: req.file.path });
+    res.json({ url: req.file.path });
   } catch (err) {
     console.error('Banner upload failed:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 module.exports = router;
