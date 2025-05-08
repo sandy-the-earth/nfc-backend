@@ -23,21 +23,33 @@ router.post('/:activationCode', async (req, res) => {
 
     await transporter.sendMail({
       from: `"commaCards Contact" <${process.env.EMAIL_USER}>`,
+      replyTo: email,
       to: profile.ownerEmail,
       subject: `New contact from ${name}`,
       text: `
-New message from your commaCard profile:
-
-👤 Name: ${name}
-✉️ Email: ${email}
-📍 Place: ${place}
-📅 Date: ${date}
-🎯 Event: ${event}
-
-📝 Message:
-${message}
+    📬 You’ve received a new message via your commaCard profile!
+    
+    ━━━━━━━━━━━━━━━━━━━━━━━
+    
+    Hey, this is ${name}, reaching out to you through your commaCards profile!
+    
+    We met at ${place}, on ${date}, during the event "${event}".
+    
+    ━━━━━━━━━━━━━━━━━━━━━━━
+    
+    📝 Message:
+    ${message}
+    
+    You can write back to me at ${email} or reply to this email.
+    ━━━━━━━━━━━━━━━━━━━━━━━
+    
+    This message was submitted through your commaCard public profile.
+    Just hit reply to continue the conversation!
+    
+    — The commaCards Team
       `
     });
+    
 
     res.json({ message: 'Message sent successfully' });
   } catch (err) {
