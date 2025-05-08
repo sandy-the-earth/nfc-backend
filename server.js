@@ -18,7 +18,7 @@ const contactRoutes = require('./routes/contact');
 const app = express();
 
 // Middleware
-const allowedOrigins = ['https://nfc-frontend-pearl.vercel.app'];
+const allowedOrigins = ['https://nfc-frontend-pearl.vercel.app', 'https://skyblue-pig-834243.hostingersite.com'];
 
 app.use(cors({
   origin: function (origin, callback) {
