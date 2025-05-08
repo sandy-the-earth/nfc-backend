@@ -13,6 +13,7 @@ const authRoutes = require('./routes/auth');
 const loginRoutes = require('./routes/login');
 const profileRoutes = require('./routes/profile');
 const publicProfileRoutes = require('./routes/publicProfile');
+const contactRoutes = require('./routes/contact');
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use('/api/auth', authRoutes);             // Activation
 app.use('/api/login', loginRoutes);           // Login
 app.use('/api/profile', profileRoutes);       // Authenticated profile (by ID)
 app.use('/api/public', publicProfileRoutes);  // Public view (by activation code)
+app.use('/api/contact', contactRoutes);
 
 // Fallback route for undefined endpoints
 app.use((req, res) => {
