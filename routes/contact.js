@@ -13,29 +13,28 @@ router.post('/:activationCode', async (req, res) => {
       return res.status(404).json({ message: 'Profile not found or missing email' });
     }
 
-    // Send email to the profile owner
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.NOTIFY_EMAIL,
-        pass: process.env.NOTIFY_EMAIL_PASSWORD
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
       }
     });
 
     await transporter.sendMail({
-      from: `"commaCards Contact" <${process.env.NOTIFY_EMAIL}>`,
+      from: `"commaCards Contact" <${process.env.EMAIL_USER}>`,
       to: profile.ownerEmail,
       subject: `New contact from ${name}`,
       text: `
-New message from your profile:
+New message from your commaCard profile:
 
-Name: ${name}
-Email: ${email}
-Event: ${event}
-Date: ${date}
-Place: ${place}
+👤 Name: ${name}
+✉️ Email: ${email}
+📍 Place: ${place}
+📅 Date: ${date}
+🎯 Event: ${event}
 
-Message:
+📝 Message:
 ${message}
       `
     });
