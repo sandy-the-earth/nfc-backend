@@ -61,29 +61,53 @@ console.log('✅ contactRoutes OK');
 console.log('✅ All route files imported');
 
 // Route Mounting with Logs
-console.log('📦 Mounting /api/admin');
-app.use('/api/admin', adminRoutes);
-console.log('✅ Mounted /api/admin');
+try {
+  console.log('📦 Mounting /api/admin');
+  app.use('/api/admin', adminRoutes);
+  console.log('✅ Mounted /api/admin');
+} catch (err) {
+  console.error('❌ Error mounting /api/admin:', err);
+}
 
-console.log('📦 Mounting /api/auth');
-app.use('/api/auth', authRoutes);
-console.log('✅ Mounted /api/auth');
+try {
+  console.log('📦 Mounting /api/auth');
+  app.use('/api/auth', authRoutes);
+  console.log('✅ Mounted /api/auth');
+} catch (err) {
+  console.error('❌ Error mounting /api/auth:', err);
+}
 
-console.log('📦 Mounting /api/login');
-app.use('/api/login', loginRoutes);
-console.log('✅ Mounted /api/login');
+try {
+  console.log('📦 Mounting /api/login');
+  app.use('/api/login', loginRoutes);
+  console.log('✅ Mounted /api/login');
+} catch (err) {
+  console.error('❌ Error mounting /api/login:', err);
+}
 
-console.log('📦 Mounting /api/profile');
-app.use('/api/profile', profileRoutes);
-console.log('✅ Mounted /api/profile');
+try {
+  console.log('📦 Mounting /api/profile');
+  app.use('/api/profile', profileRoutes);
+  console.log('✅ Mounted /api/profile');
+} catch (err) {
+  console.error('❌ Error mounting /api/profile:', err);
+}
 
-console.log('📦 Mounting /api/public');
-app.use('/api/public', publicProfileRoutes);
-console.log('✅ Mounted /api/public');
+try {
+  console.log('📦 Mounting /api/public');
+  app.use('/api/public', publicProfileRoutes);
+  console.log('✅ Mounted /api/public');
+} catch (err) {
+  console.error('❌ Error mounting /api/public:', err);
+}
 
-console.log('📦 Mounting /api/contact');
-app.use('/api/contact', contactRoutes);
-console.log('✅ Mounted /api/contact');
+try {
+  console.log('📦 Mounting /api/contact');
+  app.use('/api/contact', contactRoutes);
+  console.log('✅ Mounted /api/contact');
+} catch (err) {
+  console.error('❌ Error mounting /api/contact:', err);
+}
 
 // Fallback 404
 app.use((req, res) => {
