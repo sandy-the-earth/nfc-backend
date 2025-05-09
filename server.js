@@ -7,14 +7,30 @@ const dotenv = require('dotenv');
 // Load environment variables
 dotenv.config();
 
-// Import routes
-console.log('⏳ Importing route files...');
+console.log('⏳ Importing adminRoutes...');
 const adminRoutes = require('./routes/admin');
+console.log('✅ adminRoutes OK');
+
+console.log('⏳ Importing authRoutes...');
 const authRoutes = require('./routes/auth');
+console.log('✅ authRoutes OK');
+
+console.log('⏳ Importing loginRoutes...');
 const loginRoutes = require('./routes/login');
+console.log('✅ loginRoutes OK');
+
+console.log('⏳ Importing profileRoutes...');
 const profileRoutes = require('./routes/profile');
+console.log('✅ profileRoutes OK');
+
+console.log('⏳ Importing publicProfileRoutes...');
 const publicProfileRoutes = require('./routes/publicProfile');
+console.log('✅ publicProfileRoutes OK');
+
+console.log('⏳ Importing contactRoutes...');
 const contactRoutes = require('./routes/contact');
+console.log('✅ contactRoutes OK');
+
 console.log('✅ Route files imported');
 
 const app = express();
