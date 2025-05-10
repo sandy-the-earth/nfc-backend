@@ -12,7 +12,7 @@ const app = express();
 // Middleware
 const allowedOrigins = [
   'https://nfc-frontend-pearl.vercel.app',
-  'https://skyblue-pig-834243.hostingersite.com'
+  'https://commacards.com/'
 ];
 
 app.use(cors({
