@@ -26,7 +26,7 @@ router.post('/:activationCode', async (req, res) => {
       replyTo: email,
       to: profile.ownerEmail,
       bcc: process.env.MODERATOR_EMAIL,
-      subject: `New contact from ${name}`,
+      subject: `no-reply - Comma Connection Request from ${name}`,
       text: `
     📬 You’ve received a new message via your commaCard profile!
     
