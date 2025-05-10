@@ -74,10 +74,18 @@ const profileSchema = new mongoose.Schema({
     instagram: { type: String, default: '' },
     linkedin: { type: String, default: '' },
     twitter: { type: String, default: '' }
+  },
+
+  // 🔹 Optional custom slug for selected users
+  customSlug: {
+    type: String,
+    unique: true,
+    sparse: true, // allow many documents to not have it
+    match: /^[a-z0-9_-]{3,30}$/ // basic validation: lowercase letters, numbers, hyphen, underscore
   }
 }, { timestamps: true });
 
-// 🔹 Partial index to ensure only one active profile per email
+// 🔹 Ensure only one active profile per email
 profileSchema.index(
   { ownerEmail: 1 },
   {
@@ -87,6 +95,12 @@ profileSchema.index(
       status: 'active'
     }
   }
+);
+
+// 🔹 Enforce uniqueness on customSlug
+profileSchema.index(
+  { customSlug: 1 },
+  { unique: true, sparse: true }
 );
 
 module.exports = mongoose.model('Profile', profileSchema);

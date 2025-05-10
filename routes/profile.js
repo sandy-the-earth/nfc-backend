@@ -3,7 +3,10 @@ const router = express.Router();
 const Profile = require('../models/Profile');
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const cloudinary = require('../utils/cloudinary'); // Cloudinary instance you've configured
+const cloudinary = require('../utils/cloudinary');
+
+// 🔹 Reserved slugs (forbidden values)
+const RESERVED_SLUGS = ['admin', 'dashboard', 'login', 'logout', 'api', 'p'];
 
 // 🔹 Cloudinary Storage Setup
 const storage = new CloudinaryStorage({
@@ -77,6 +80,39 @@ router.post('/:id/banner', upload.single('banner'), async (req, res) => {
     res.json({ url: req.file.path });
   } catch (err) {
     console.error('Banner upload failed:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 🔹 SET custom slug
+router.patch('/:id/custom-slug', async (req, res) => {
+  const { customSlug } = req.body;
+  const { id } = req.params;
+
+  // Basic validation
+  const validSlug = /^[a-z0-9_-]{3,30}$/.test(customSlug);
+  if (!customSlug || !validSlug) {
+    return res.status(400).json({ message: 'Invalid slug format' });
+  }
+
+  if (RESERVED_SLUGS.includes(customSlug)) {
+    return res.status(403).json({ message: 'This slug is reserved' });
+  }
+
+  try {
+    const existing = await Profile.findOne({ customSlug });
+    if (existing) {
+      return res.status(409).json({ message: 'Slug already taken' });
+    }
+
+    const profile = await Profile.findByIdAndUpdate(id, { customSlug }, { new: true });
+    if (!profile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+
+    res.json({ message: 'Custom slug set successfully', profile });
+  } catch (err) {
+    console.error('Error setting custom slug:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });

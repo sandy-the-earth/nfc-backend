@@ -2,10 +2,15 @@ const express = require('express');
 const router = express.Router();
 const Profile = require('../models/Profile');
 
-// GET public profile by activation code
+// 🔹 GET public profile by activationCode OR customSlug
 router.get('/:activationCode', async (req, res) => {
   try {
-    const profile = await Profile.findOne({ activationCode: req.params.activationCode });
+    const profile = await Profile.findOne({
+      $or: [
+        { activationCode: req.params.activationCode },
+        { customSlug: req.params.activationCode }
+      ]
+    });
 
     if (!profile) {
       return res.status(404).json({ message: 'Profile not found' });
