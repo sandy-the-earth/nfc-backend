@@ -9,107 +9,54 @@ dotenv.config();
 
 const app = express();
 
+// ✅ Safer CORS config
 const allowedOrigins = [
-  'https://commacards.com',                       // ✅ your live domain
-  'https://www.commacards.com',                   // ✅ (optional if using www)
-  'http://localhost:3000',                        // ✅ for local dev
-  'https://nfc-frontend-pearl.vercel.app',        // (optional)
-  'https://skyblue-pig-834243.hostingersite.com'  // (optional)
+  'https://commacards.com',
+  'https://www.commacards.com',
+  'http://localhost:3000',
+  'https://nfc-frontend-pearl.vercel.app',
+  'https://skyblue-pig-834243.hostingersite.com'
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.error('❌ CORS blocked:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
-}));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
-app.options('*', cors());
+// ✅ Apply CORS to all requests including preflight
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Handle OPTIONS before anything else
+
 app.use(express.json());
 
 // Static file serving
 console.log('📁 Setting up static file serving for /uploads');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Route Imports with Logs
-console.log('⏳ Importing adminRoutes...');
+// Route Imports
 const adminRoutes = require('./routes/admin');
-console.log('✅ adminRoutes OK');
-
-console.log('⏳ Importing authRoutes...');
 const authRoutes = require('./routes/auth');
-console.log('✅ authRoutes OK');
-
-console.log('⏳ Importing loginRoutes...');
 const loginRoutes = require('./routes/login');
-console.log('✅ loginRoutes OK');
-
-console.log('⏳ Importing profileRoutes...');
 const profileRoutes = require('./routes/profile');
-console.log('✅ profileRoutes OK');
-
-console.log('⏳ Importing publicProfileRoutes...');
 const publicProfileRoutes = require('./routes/publicProfile');
-console.log('✅ publicProfileRoutes OK');
-
-console.log('⏳ Importing contactRoutes...');
 const contactRoutes = require('./routes/contact');
-console.log('✅ contactRoutes OK');
 
-console.log('✅ All route files imported');
-
-// Route Mounting with Logs
-try {
-  console.log('📦 Mounting /api/admin');
-  app.use('/api/admin', adminRoutes);
-  console.log('✅ Mounted /api/admin');
-} catch (err) {
-  console.error('❌ Error mounting /api/admin:', err);
-}
-
-try {
-  console.log('📦 Mounting /api/auth');
-  app.use('/api/auth', authRoutes);
-  console.log('✅ Mounted /api/auth');
-} catch (err) {
-  console.error('❌ Error mounting /api/auth:', err);
-}
-
-try {
-  console.log('📦 Mounting /api/login');
-  app.use('/api/login', loginRoutes);
-  console.log('✅ Mounted /api/login');
-} catch (err) {
-  console.error('❌ Error mounting /api/login:', err);
-}
-
-try {
-  console.log('📦 Mounting /api/profile');
-  app.use('/api/profile', profileRoutes);
-  console.log('✅ Mounted /api/profile');
-} catch (err) {
-  console.error('❌ Error mounting /api/profile:', err);
-}
-
-try {
-  console.log('📦 Mounting /api/public');
-  app.use('/api/public', publicProfileRoutes);
-  console.log('✅ Mounted /api/public');
-} catch (err) {
-  console.error('❌ Error mounting /api/public:', err);
-}
-
-try {
-  console.log('📦 Mounting /api/contact');
-  app.use('/api/contact', contactRoutes);
-  console.log('✅ Mounted /api/contact');
-} catch (err) {
-  console.error('❌ Error mounting /api/contact:', err);
-}
+// Route Mounting
+app.use('/api/admin', adminRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/login', loginRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/public', publicProfileRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Fallback 404
 app.use((req, res) => {
