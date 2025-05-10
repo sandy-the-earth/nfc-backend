@@ -111,6 +111,8 @@ router.patch('/:id/custom-slug', async (req, res) => {
     if (!profile) {
       return res.status(404).json({ message: 'Profile not found' });
     }
+    // Log for debugging
+    console.log(`[CustomSlug] Updated profile ${id} with customSlug: ${profile.customSlug}`);
     // Always expose a single 'slug' field in the response
     const slug = profile.customSlug || profile.activationCode;
     res.json({ message: 'Custom slug set successfully', profile: { ...profile.toObject(), slug } });
