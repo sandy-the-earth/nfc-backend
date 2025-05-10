@@ -2,10 +2,13 @@
   "name": "nfc-backend",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
+    "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
     "dev": "nodemon server.js"
+  },
+  "engines": {
+  "node": "18.20.2"
   },
   "keywords": [],
   "author": "",
