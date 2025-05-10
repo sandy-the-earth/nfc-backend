@@ -25,8 +25,13 @@ router.post('/activate-profile', async (req, res) => {
       return res.status(400).json({ message: 'Password must be at least 6 characters long' });
     }
 
-    // 4. Check activation code
-    const profile = await Profile.findOne({ activationCode });
+    // 4. Check activation code or custom slug
+    const profile = await Profile.findOne({
+      $or: [
+        { activationCode },
+        { customSlug: activationCode }
+      ]
+    });
     if (!profile) {
       return res.status(404).json({ message: 'Invalid activation code' });
     }
