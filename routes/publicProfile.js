@@ -28,10 +28,16 @@ router.get('/:activationCode', async (req, res) => {
       website,
       ownerEmail,
       socialLinks = {},
-      createdAt
+      createdAt,
+      customSlug,
+      activationCode
     } = profile;
 
+    // Always expose a single 'slug' field
+    const slug = customSlug || activationCode;
+
     res.json({
+      slug,
       bannerUrl,
       avatarUrl,
       name: name || '',

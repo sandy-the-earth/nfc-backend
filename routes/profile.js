@@ -24,7 +24,9 @@ router.get('/:id', async (req, res) => {
   try {
     const profile = await Profile.findById(req.params.id);
     if (!profile) return res.status(404).json({ message: 'Profile not found' });
-    res.json(profile);
+    // Always expose a single 'slug' field
+    const slug = profile.customSlug || profile.activationCode;
+    res.json({ ...profile.toObject(), slug });
   } catch (err) {
     console.error('Error fetching profile:', err);
     res.status(500).json({ message: 'Server error' });
