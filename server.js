@@ -79,3 +79,16 @@ mongoose
   .catch((err) => {
     console.error('❌ MongoDB connection error:', err);
   });
+
+  console.log('📢 Registered backend routes:');
+app._router.stack.forEach((middleware) => {
+  if (middleware.route) {
+    console.log(middleware.route.path);
+  } else if (middleware.name === 'router') {
+    middleware.handle.stack.forEach((handler) => {
+      if (handler.route) {
+        console.log(handler.route.path);
+      }
+    });
+  }
+});
