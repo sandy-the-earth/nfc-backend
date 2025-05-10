@@ -9,10 +9,12 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
 const allowedOrigins = [
-  'https://nfc-frontend-pearl.vercel.app',
-  'https://commacards.com/'
+  'https://commacards.com',                       // ✅ your live domain
+  'https://www.commacards.com',                   // ✅ (optional if using www)
+  'http://localhost:3000',                        // ✅ for local dev
+  'https://nfc-frontend-pearl.vercel.app',        // (optional)
+  'https://skyblue-pig-834243.hostingersite.com'  // (optional)
 ];
 
 app.use(cors({
