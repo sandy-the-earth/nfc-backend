@@ -4,11 +4,17 @@ const router = express.Router();
 const Profile = require('../models/Profile');
 const nodemailer = require('nodemailer');
 
-// POST /api/contact/:activationCode
+// POST /api/contact/:activationCode or customSlug
 router.post('/:activationCode', async (req, res) => {
   try {
     const { name, email, message, place, date, event } = req.body;
-    const profile = await Profile.findOne({ activationCode: req.params.activationCode });
+    // Allow lookup by activationCode or customSlug
+    const profile = await Profile.findOne({
+      $or: [
+        { activationCode: req.params.activationCode },
+        { customSlug: req.params.activationCode }
+      ]
+    });
     if (!profile || !profile.ownerEmail) {
       return res.status(404).json({ message: 'Profile not found or missing email' });
     }
