@@ -82,6 +82,11 @@ const profileSchema = new mongoose.Schema({
     unique: true,
     sparse: true, // allow many documents to not have it
     match: /^[a-z0-9_-]{3,30}$/ // basic validation: lowercase letters, numbers, hyphen, underscore
+  },
+
+  // 🔹 Exclusive badge for special profiles
+  exclusiveBadge: {
+    text: { type: String, default: null }
   }
 }, { timestamps: true });
 

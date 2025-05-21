@@ -31,7 +31,7 @@ router.post('/:activationCode', async (req, res) => {
 
     await transporter.sendMail({
       from: `"commaCards Connection" <${process.env.EMAIL_USER}>`,
-      replyTo: email,
+      replyTo: em
       to: profile.ownerEmail,
       bcc: process.env.MODERATOR_EMAIL,
       subject: `no-reply - Comma Connection Request from ${name}`,

@@ -146,7 +146,8 @@ router.get('/export', async (req, res) => {
       'socialLinks.instagram',
       'socialLinks.linkedin',
       'socialLinks.twitter',
-      'createdAt'
+      'createdAt',
+      'exclusiveBadge.text'
     ];
     const parser = new Parser({ fields });
     const csv = parser.parse(profiles);
@@ -155,6 +156,29 @@ router.get('/export', async (req, res) => {
     res.send(csv);
   } catch (err) {
     console.error('Admin: error exporting CSV', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ─── SET/REMOVE EXCLUSIVE BADGE ─────────────────────────────────────────────
+// PUT /api/admin/profiles/:id/exclusive-badge
+// Body: { text: string | null }
+router.put('/profiles/:id/exclusive-badge', async (req, res) => {
+  try {
+    const { text } = req.body;
+    // Allow setting or removing the badge
+    const update = text ? { exclusiveBadge: { text } } : { exclusiveBadge: { text: null } };
+    const profile = await Profile.findByIdAndUpdate(
+      req.params.id,
+      update,
+      { new: true }
+    );
+    if (!profile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+    res.json({ message: text ? 'Exclusive badge set' : 'Exclusive badge removed', profile });
+  } catch (err) {
+    console.error('Admin: error updating exclusive badge', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
