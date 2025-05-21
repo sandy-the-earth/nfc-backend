@@ -122,4 +122,25 @@ router.patch('/:id/custom-slug', async (req, res) => {
   }
 });
 
+// PATCH /api/profile/:id/exclusive-badge
+// Body: { text: string | null }
+router.patch('/:id/exclusive-badge', async (req, res) => {
+  try {
+    const { text } = req.body;
+    const update = text ? { exclusiveBadge: { text } } : { exclusiveBadge: { text: null } };
+    const profile = await Profile.findByIdAndUpdate(
+      req.params.id,
+      update,
+      { new: true }
+    );
+    if (!profile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+    res.json({ message: text ? 'Exclusive badge set' : 'Exclusive badge removed', profile });
+  } catch (err) {
+    console.error('Error updating exclusive badge:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
