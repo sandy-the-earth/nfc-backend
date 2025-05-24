@@ -53,7 +53,8 @@ router.get('/:activationCode', async (req, res) => {
         linkedin: socialLinks.linkedin || '',
         twitter: socialLinks.twitter || ''
       },
-      createdAt
+      createdAt,
+      exclusiveBadge: profile.exclusiveBadge || null
     });
   } catch (err) {
     console.error('❌ Public profile fetch error:', err);
