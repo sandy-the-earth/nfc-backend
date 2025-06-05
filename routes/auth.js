@@ -83,7 +83,7 @@ router.post('/forgot-password', async (req, res) => {
     await profile.save();
 
     // Send email
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
     const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST || 'smtp.hostinger.com',
       port: process.env.EMAIL_PORT ? parseInt(process.env.EMAIL_PORT) : 465,
