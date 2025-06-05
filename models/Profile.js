@@ -87,6 +87,16 @@ const profileSchema = new mongoose.Schema({
   // 🔹 Exclusive badge for special profiles
   exclusiveBadge: {
     text: { type: String, default: null }
+  },
+
+  // Password reset functionality
+  resetPasswordToken: {
+    type: String,
+    default: null
+  },
+  resetPasswordExpires: {
+    type: Date,
+    default: null
   }
 }, { timestamps: true });
 
