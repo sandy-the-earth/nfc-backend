@@ -19,6 +19,11 @@ router.post('/:activationCode', async (req, res) => {
       return res.status(404).json({ message: 'Profile not found or missing email' });
     }
 
+    // Increment contactExchanges for insights
+    if (profile.contactExchanges == null) profile.contactExchanges = 0;
+    profile.contactExchanges += 1;
+    await profile.save();
+
     const transporter = nodemailer.createTransport({
       host: 'smtp.hostinger.com',
       port: 465, // or use 587 if you prefer TLS

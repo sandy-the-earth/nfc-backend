@@ -97,6 +97,28 @@ const profileSchema = new mongoose.Schema({
   resetPasswordExpires: {
     type: Date,
     default: null
+  },
+
+  // Dashboard insights tracking
+  views: [
+    {
+      date: { type: Date, default: Date.now },
+      ip: String,
+      userAgent: String
+    }
+  ],
+  contactExchanges: {
+    type: Number,
+    default: 0
+  },
+  lastViewedAt: {
+    type: Date,
+    default: null
+  },
+  linkClicks: {
+    type: Map,
+    of: Number,
+    default: {}
   }
 }, { timestamps: true });
 
