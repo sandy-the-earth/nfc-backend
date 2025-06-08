@@ -143,4 +143,36 @@ router.patch('/:id/exclusive-badge', async (req, res) => {
   }
 });
 
+// GET /api/profile/:id/insights (dashboard only, for owner)
+router.get('/:id/insights', async (req, res) => {
+  try {
+    const profile = await Profile.findById(req.params.id);
+    if (!profile) return res.status(404).json({ message: 'Profile not found' });
+    // Optionally: Add authentication/authorization check here
+    const uniqueSet = new Set(profile.views.map(v => v.ip + '|' + v.userAgent));
+    let mostPopularContactMethod = null;
+    if (profile.linkClicks && profile.linkClicks.size > 0) {
+      let max = 0;
+      for (const [method, count] of profile.linkClicks.entries()) {
+        if (count > max) {
+          max = count;
+          mostPopularContactMethod = method;
+        }
+      }
+    }
+    res.json({
+      totalViews: profile.views.length,
+      uniqueVisitors: uniqueSet.size,
+      contactExchanges: profile.contactExchanges || 0,
+      lastViewedAt: profile.lastViewedAt,
+      mostPopularContactMethod,
+      createdAt: profile.createdAt,
+      updatedAt: profile.updatedAt
+    });
+  } catch (err) {
+    console.error('Dashboard insights error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
