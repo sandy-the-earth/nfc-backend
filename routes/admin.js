@@ -222,4 +222,49 @@ router.get('/profile/:id', async (req, res) => {
   }
 });
 
+// GET /api/admin-bs1978av1123ss2402/profile/:id/insights
+router.get('/profile/:id/insights', async (req, res) => {
+  try {
+    const profile = await Profile.findById(req.params.id);
+    if (!profile) return res.status(404).json({ message: 'Profile not found' });
+    // Aggregate views by day
+    const viewCountsMap = {};
+    for (const v of profile.views) {
+      const d = new Date(v.date);
+      const dateStr = d.toISOString().slice(0, 10); // YYYY-MM-DD
+      viewCountsMap[dateStr] = (viewCountsMap[dateStr] || 0) + 1;
+    }
+    const viewCountsOverTime = Object.entries(viewCountsMap)
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+    // Unique visitors
+    const uniqueSet = new Set(profile.views.map(v => v.ip + '|' + v.userAgent));
+    // Most popular contact method
+    let mostPopularContactMethod = null;
+    if (profile.linkClicks && profile.linkClicks.size > 0) {
+      let max = 0;
+      for (const [method, count] of profile.linkClicks.entries()) {
+        if (count > max) {
+          max = count;
+          mostPopularContactMethod = method;
+        }
+      }
+    }
+    res.json({
+      totalViews: profile.views.length,
+      uniqueVisitors: uniqueSet.size,
+      contactExchanges: profile.contactExchanges || 0,
+      contactSaves: profile.contactSaves || 0,
+      viewCountsOverTime,
+      lastViewedAt: profile.lastViewedAt,
+      mostPopularContactMethod,
+      createdAt: profile.createdAt,
+      updatedAt: profile.updatedAt
+    });
+  } catch (err) {
+    console.error('Admin insights error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

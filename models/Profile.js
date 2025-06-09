@@ -111,6 +111,10 @@ const profileSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  contactSaves: {
+    type: Number,
+    default: 0
+  },
   lastViewedAt: {
     type: Date,
     default: null
