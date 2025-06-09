@@ -207,4 +207,19 @@ router.patch('/profile/:id/insights-enabled', async (req, res) => {
   }
 });
 
+// ─── FETCH SINGLE PROFILE BY ID ─────────────────────────────────────────────
+// GET /api/admin/profile/:id - fetch a single profile by ID
+router.get('/profile/:id', async (req, res) => {
+  try {
+    const profile = await Profile.findById(req.params.id);
+    if (!profile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+    res.json(profile);
+  } catch (err) {
+    console.error('Admin: error fetching profile', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
