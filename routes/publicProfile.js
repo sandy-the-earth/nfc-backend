@@ -83,17 +83,19 @@ router.get('/:activationCode/insights', async (req, res) => {
 
     // Calculate unique visitors (by ip+userAgent)
     const uniqueSet = new Set(profile.views.map(v => v.ip + '|' + v.userAgent));
+
     // Find most popular contact method
     let mostPopularContactMethod = null;
-    if (profile.linkClicks && profile.linkClicks.size > 0) {
+    if (profile.linkClicks && Object.keys(profile.linkClicks).length > 0) {
       let max = 0;
-      for (const [method, count] of profile.linkClicks.entries()) {
+      for (const [method, count] of Object.entries(profile.linkClicks)) {
         if (count > max) {
           max = count;
           mostPopularContactMethod = method;
         }
       }
     }
+
     res.json({
       totalViews: profile.views.length,
       uniqueVisitors: uniqueSet.size,
@@ -109,7 +111,7 @@ router.get('/:activationCode/insights', async (req, res) => {
   }
 });
 
-// Convert linkClicks Map to plain object before saving
+// Ensure proper handling of linkClicks during save and retrieval
 router.post('/:activationCode/link-tap', async (req, res) => {
   try {
     const { link } = req.body;
@@ -130,15 +132,11 @@ router.post('/:activationCode/link-tap', async (req, res) => {
 
     // Increment link click count
     if (!profile.linkClicks) {
-      profile.linkClicks = new Map();
+      profile.linkClicks = {}; // Initialize as plain object
     }
-    const currentCount = profile.linkClicks.get(link) || 0;
-    profile.linkClicks.set(link, currentCount + 1);
+    const currentCount = profile.linkClicks[link] || 0;
+    profile.linkClicks[link] = currentCount + 1;
     console.log(`Link tapped: ${link}, Total taps: ${currentCount + 1}`); // Log updates
-
-    // Convert Map to plain object for MongoDB
-    profile.linkClicks = Object.fromEntries(profile.linkClicks);
-    console.log('Converted linkClicks to plain object:', profile.linkClicks);
 
     await profile.save();
 
