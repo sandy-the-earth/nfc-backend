@@ -109,7 +109,7 @@ router.get('/:activationCode/insights', async (req, res) => {
   }
 });
 
-// Add route to track link taps
+// Convert linkClicks Map to plain object before saving
 router.post('/:activationCode/link-tap', async (req, res) => {
   try {
     const { link } = req.body;
@@ -136,8 +136,9 @@ router.post('/:activationCode/link-tap', async (req, res) => {
     profile.linkClicks.set(link, currentCount + 1);
     console.log(`Link tapped: ${link}, Total taps: ${currentCount + 1}`); // Log updates
 
-    // Debugging: Log the entire linkClicks map
-    console.log('Updated linkClicks:', Array.from(profile.linkClicks.entries()));
+    // Convert Map to plain object for MongoDB
+    profile.linkClicks = Object.fromEntries(profile.linkClicks);
+    console.log('Converted linkClicks to plain object:', profile.linkClicks);
 
     await profile.save();
 
