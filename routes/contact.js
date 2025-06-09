@@ -22,6 +22,7 @@ router.post('/:activationCode', async (req, res) => {
     // Increment contactExchanges for insights
     if (profile.contactExchanges == null) profile.contactExchanges = 0;
     profile.contactExchanges += 1;
+    console.log(`Updated contactExchanges: ${profile.contactExchanges}`); // Log update
     await profile.save();
 
     const transporter = nodemailer.createTransport({

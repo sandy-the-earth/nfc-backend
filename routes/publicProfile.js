@@ -21,6 +21,7 @@ router.get('/:activationCode', async (req, res) => {
     const userAgent = req.headers['user-agent'] || '';
     profile.views.push({ date: new Date(), ip, userAgent });
     profile.lastViewedAt = new Date();
+    console.log(`Updated views count: ${profile.views.length}, lastViewedAt: ${profile.lastViewedAt}`); // Log updates
     await profile.save();
 
     const {
