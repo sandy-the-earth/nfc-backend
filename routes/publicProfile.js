@@ -111,7 +111,7 @@ router.get('/:activationCode/insights', async (req, res) => {
   }
 });
 
-// Ensure proper handling of linkClicks during save and retrieval
+// Ensure proper handling of linkTaps and other parameters
 router.post('/:activationCode/link-tap', async (req, res) => {
   try {
     const { link } = req.body;
@@ -143,6 +143,32 @@ router.post('/:activationCode/link-tap', async (req, res) => {
     res.json({ message: 'Link tap recorded', link, totalTaps: currentCount + 1 });
   } catch (err) {
     console.error('Error recording link tap:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.post('/:activationCode/contact-download', async (req, res) => {
+  try {
+    const profile = await Profile.findOne({
+      $or: [
+        { activationCode: req.params.activationCode },
+        { customSlug: req.params.activationCode }
+      ]
+    });
+
+    if (!profile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+
+    // Increment contact downloads
+    profile.contactExchanges = (profile.contactExchanges || 0) + 1;
+    console.log(`Contact downloads incremented: ${profile.contactExchanges}`); // Log updates
+
+    await profile.save();
+
+    res.json({ message: 'Contact download recorded', totalDownloads: profile.contactExchanges });
+  } catch (err) {
+    console.error('Error recording contact download:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
