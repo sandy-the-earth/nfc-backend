@@ -109,4 +109,43 @@ router.get('/:activationCode/insights', async (req, res) => {
   }
 });
 
+// Add route to track link taps
+router.post('/:activationCode/link-tap', async (req, res) => {
+  try {
+    const { link } = req.body;
+    if (!link) {
+      return res.status(400).json({ message: 'Link is required' });
+    }
+
+    const profile = await Profile.findOne({
+      $or: [
+        { activationCode: req.params.activationCode },
+        { customSlug: req.params.activationCode }
+      ]
+    });
+
+    if (!profile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+
+    // Increment link click count
+    if (!profile.linkClicks) {
+      profile.linkClicks = new Map();
+    }
+    const currentCount = profile.linkClicks.get(link) || 0;
+    profile.linkClicks.set(link, currentCount + 1);
+    console.log(`Link tapped: ${link}, Total taps: ${currentCount + 1}`); // Log updates
+
+    // Debugging: Log the entire linkClicks map
+    console.log('Updated linkClicks:', Array.from(profile.linkClicks.entries()));
+
+    await profile.save();
+
+    res.json({ message: 'Link tap recorded', link, totalTaps: currentCount + 1 });
+  } catch (err) {
+    console.error('Error recording link tap:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
