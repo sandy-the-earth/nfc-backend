@@ -51,7 +51,8 @@ const publicProfileRoutes = require('./routes/publicProfile');
 const contactRoutes = require('./routes/contact');
 
 // Route Mounting
-app.use('/api/admin', adminRoutes);
+app.use('/api/admin-bs1978av1123ss2402', adminRoutes);
+// app.use('/api/admin', adminRoutes); // (optional: remove or comment out old route)
 app.use('/api/auth', authRoutes);
 app.use('/api/login', loginRoutes);
 app.use('/api/profile', profileRoutes);
