@@ -148,7 +148,9 @@ router.get('/:id/insights', async (req, res) => {
   try {
     const profile = await Profile.findById(req.params.id);
     if (!profile) return res.status(404).json({ message: 'Profile not found' });
-    // Optionally: Add authentication/authorization check here
+    if (!profile.insightsEnabled) {
+      return res.status(403).json({ message: 'Insights are not enabled for this profile.' });
+    }
     const uniqueSet = new Set(profile.views.map(v => v.ip + '|' + v.userAgent));
     let mostPopularContactMethod = null;
     if (profile.linkClicks && profile.linkClicks.size > 0) {

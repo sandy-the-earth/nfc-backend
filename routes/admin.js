@@ -183,4 +183,28 @@ router.put('/profiles/:id/exclusive-badge', async (req, res) => {
   }
 });
 
+// ─── ENABLE/DISABLE INSIGHTS ───────────────────────────────────────────────
+// PATCH /api/admin/profile/:id/insights-enabled
+// Body: { enabled: boolean }
+router.patch('/profile/:id/insights-enabled', async (req, res) => {
+  try {
+    const { enabled } = req.body;
+    if (typeof enabled !== 'boolean') {
+      return res.status(400).json({ message: 'Missing or invalid enabled boolean' });
+    }
+    const profile = await Profile.findByIdAndUpdate(
+      req.params.id,
+      { insightsEnabled: enabled },
+      { new: true }
+    );
+    if (!profile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+    res.json({ message: `Insights ${enabled ? 'enabled' : 'disabled'} for profile`, profile });
+  } catch (err) {
+    console.error('Admin: error updating insightsEnabled', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

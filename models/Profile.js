@@ -119,6 +119,10 @@ const profileSchema = new mongoose.Schema({
     type: Map,
     of: Number,
     default: {}
+  },
+  insightsEnabled: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 
