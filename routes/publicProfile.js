@@ -111,7 +111,7 @@ router.get('/:activationCode/insights', async (req, res) => {
   }
 });
 
-// Ensure proper handling of linkTaps and other parameters
+// Ensure proper handling of linkTaps and other params
 router.post('/:activationCode/link-tap', async (req, res) => {
   try {
     const { link } = req.body;

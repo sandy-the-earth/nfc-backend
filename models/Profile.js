@@ -127,6 +127,12 @@ const profileSchema = new mongoose.Schema({
   insightsEnabled: {
     type: Boolean,
     default: false
+  },
+
+  // Add industry field to the profile schema
+  industry: {
+    type: String,
+    default: ''
   }
 }, { timestamps: true });
 
@@ -147,5 +153,23 @@ profileSchema.index(
   { customSlug: 1 },
   { unique: true, sparse: true }
 );
+
+// Add a static list of available industries
+const availableIndustries = [
+  'Technology',
+  'Healthcare',
+  'Finance',
+  'Education',
+  'Retail',
+  'Manufacturing',
+  'Hospitality',
+  'Real Estate',
+  'Transportation',
+  'Entertainment'
+];
+
+profileSchema.statics.getAvailableIndustries = function () {
+  return availableIndustries;
+};
 
 module.exports = mongoose.model('Profile', profileSchema);
