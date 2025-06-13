@@ -49,14 +49,14 @@ router.put('/:id', async (req, res) => {
   try {
     const {
       name, title, subtitle, tags, bio,
-      location, phone, website, socialLinks, ownerEmail
+      location, phone, website, socialLinks, ownerEmail, industry
     } = req.body;
 
     const profile = await Profile.findByIdAndUpdate(
       req.params.id,
       {
         name, title, subtitle, tags, bio,
-        location, phone, website, socialLinks, ownerEmail
+        location, phone, website, socialLinks, ownerEmail, industry
       },
       { new: true }
     );
