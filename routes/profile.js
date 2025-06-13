@@ -19,6 +19,17 @@ const storage = new CloudinaryStorage({
 });
 const upload = multer({ storage });
 
+// GET /api/profile/industries - must be before any :id route
+router.get('/industries', (req, res) => {
+  try {
+    const industries = Profile.getAvailableIndustries();
+    res.json({ industries });
+  } catch (err) {
+    console.error('Error fetching industries:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // 🔹 GET profile by ID
 router.get('/:id', async (req, res) => {
   try {
