@@ -156,16 +156,21 @@ profileSchema.index(
 
 // Add a static list of available industries
 const availableIndustries = [
-  'Technology',
-  'Healthcare',
-  'Finance',
-  'Education',
-  'Retail',
-  'Manufacturing',
-  'Hospitality',
-  'Real Estate',
-  'Transportation',
-  'Entertainment'
+  "Technology",
+  "Healthcare",
+  "Finance",
+  "Education",
+  "Retail",
+  "Manufacturing",
+  "Hospitality",
+  "Real Estate",
+  "Transportation",
+  "Energy",
+  "Entertainment",
+  "Agriculture",
+  "Government",
+  "Non-Profit",
+  "Other"
 ];
 
 profileSchema.statics.getAvailableIndustries = function () {
