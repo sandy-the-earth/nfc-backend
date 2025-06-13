@@ -38,7 +38,8 @@ router.get('/:activationCode', async (req, res) => {
       socialLinks = {},
       createdAt,
       customSlug,
-      activationCode
+      activationCode,
+      industry // <-- add industry
     } = profile;
 
     // Always expose a single 'slug' field
@@ -62,7 +63,8 @@ router.get('/:activationCode', async (req, res) => {
         twitter: socialLinks.twitter || ''
       },
       createdAt,
-      exclusiveBadge: profile.exclusiveBadge || null
+      exclusiveBadge: profile.exclusiveBadge || null,
+      industry: industry || '' // <-- add industry to response
     });
   } catch (err) {
     console.error('❌ Public profile fetch error:', err);
