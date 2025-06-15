@@ -1,4 +1,3 @@
-const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -38,18 +37,6 @@ app.options('*', cors(corsOptions)); // Handle OPTIONS before anything else
 
 app.use(express.json());
 
-// Static file serving
-console.log('📁 Setting up static file serving for /uploads');
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Serve static frontend files
-app.use(express.static(path.join(__dirname, 'build')));
-
-// SPA fallback: serve index.html for any non-API route (including /plans, /pricing, etc.)
-app.get(/^\/(?!api\/).*/, (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
-
 // Route Imports
 const adminRoutes = require('./routes/admin');
 const authRoutes = require('./routes/auth');
@@ -69,7 +56,7 @@ app.use('/api/public', publicProfileRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api', plansRoutes);
 
-// Fallback 404
+// Fallback 404 for any non-API route
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
