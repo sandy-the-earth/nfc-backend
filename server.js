@@ -54,7 +54,7 @@ app.use('/api/login', loginRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/public', publicProfileRoutes);
 app.use('/api/contact', contactRoutes);
-app.use('/api', plansRoutes);
+app.use('/api/plans', plansRoutes);
 
 // Fallback 404 for any non-API route
 app.use((req, res) => {
