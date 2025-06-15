@@ -56,6 +56,11 @@ app.use('/api/public', publicProfileRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/plans', plansRoutes);
 
+// Health check route
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'NFC backend API is running.' });
+});
+
 // Fallback 404 for any non-API route
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
