@@ -61,6 +61,11 @@ app.use('/api/public', publicProfileRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/plans', plansRouter);
 
+// Allow frontend routes for /plans and /pricing (SPA support)
+app.get(['/plans', '/pricing'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
 // Fallback 404
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
