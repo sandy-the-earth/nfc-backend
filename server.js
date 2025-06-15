@@ -14,8 +14,7 @@ const allowedOrigins = [
   'https://commacards.com',
   'https://www.commacards.com',
   'http://localhost:3000',
-  'https://nfc-frontend-pearl.vercel.app',
-  'https://skyblue-pig-834243.hostingersite.com'
+  'https://nfc-frontend-pearl.vercel.app'
 ];
 
 const corsOptions = {
@@ -42,6 +41,14 @@ app.use(express.json());
 console.log('📁 Setting up static file serving for /uploads');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, 'build')));
+
+// SPA fallback: serve index.html for any non-API route (including /plans, /pricing, etc.)
+app.get(/^\/(?!api\/).*/, (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
 // Route Imports
 const adminRoutes = require('./routes/admin');
 const authRoutes = require('./routes/auth');
@@ -60,11 +67,6 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/public', publicProfileRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/plans', plansRouter);
-
-// Allow frontend routes for /plans and /pricing (SPA support)
-app.get(['/plans', '/pricing'], (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
 
 // Fallback 404
 app.use((req, res) => {
