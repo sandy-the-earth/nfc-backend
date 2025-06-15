@@ -49,6 +49,7 @@ const loginRoutes = require('./routes/login');
 const profileRoutes = require('./routes/profile');
 const publicProfileRoutes = require('./routes/publicProfile');
 const contactRoutes = require('./routes/contact');
+const plansRouter = require('./routes/plans');
 
 // Route Mounting
 app.use('/api/admin-bs1978av1123ss2402', adminRoutes);
@@ -58,6 +59,7 @@ app.use('/api/login', loginRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/public', publicProfileRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/plans', plansRouter);
 
 // Fallback 404
 app.use((req, res) => {
