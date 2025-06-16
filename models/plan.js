@@ -22,11 +22,14 @@ const plans = [
           detail: 'Showcase your name, photo, banner, role, Company/University and more'
         },
         {
-          title: 'Essential Analytics',
+          title: 'Essential Profile Analytics',
           detail: 'See total views & unique visitors in real time'
         },
         {
           title: '10 Contact Exchange Credits/mo'
+        },
+        {
+            title: 'Custom Avatar & Banner Uploads',
         },
         {
           title: '3 Theme Styles',
@@ -73,31 +76,30 @@ const plans = [
       id: 'elite',
       name: 'Elite',
       prices: { monthly: 299, quarterly: 599 },
-      tagline: 'Unlock the networking power that only few hold',
+      tagline: 'Get to play in your League',
       benefits: [
         {
-          title: 'Access to every single feature that is coded'
+          title: 'Access every single feature that is coded'
         },
         {
-          title: 'Exclusive Invite-Only Networking Events',
-          detail: 'Access exclusive events & communities'
+          title: 'Exclusive Invite-Only Networking Events'
         },
         {
           title: 'Deep Performance Analytics',
           detail: 'Pinpoint your top–performing links, Founder-level insights and lot more'
         },
         {
-          title: 'Seamless Bookings with In-profile calendar scheduling built-in'
+          title: 'In-profile calendar integration',
         },
         {
-          title: 'Never worry about monthly limits for Contact Shares'
+          title: 'Unlimited Contact Exchanges'
         },
         {
-          title: 'Stand out with our elite membership badge'
+          title: 'Elite membership badge'
         },
         {
-          title: 'Full-Color Customization',
-          detail: 'Design your profile with expert selected color palette'
+          title: 'Full Profile Customization',
+          detail: 'Design your profile with expert selected color palette & materials'
         },
         {
           title: 'Comma Insurance for a full year'},
@@ -110,4 +112,3 @@ const plans = [
   ];
   
   module.exports = { plans };
-  
