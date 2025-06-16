@@ -1,57 +1,113 @@
-// Plan model (static data, JS version)
 /**
  * @typedef {'monthly' | 'quarterly'} BillingCycle
  * @typedef {Object} PlanInfo
- * @property {'novice' | 'corporate' | 'elite'} id
- * @property {string} name
- * @property {{monthly: number, quarterly: number}} prices
- * @property {string[]} features
+ * @property {'novice' | 'corporate' | 'elite'}       id
+ * @property {string}                                 name
+ * @property {{ monthly: number; quarterly: number }} prices
+ * @property {string}                                 tagline
+ * @property {{ title: string; detail?: string }[]}   benefits
+ * @property {string}                                 ctaLabel
  */
 
 /** @type {PlanInfo[]} */
 const plans = [
-  {
-    id: 'novice',
-    name: 'Novice',
-    prices: { monthly: 99, quarterly: 199 },
-    features: [
-      { name: 'Basic Profile Detailing', description: 'Create and manage a simple profile - Name, Avatar & Banner, Mobile No, Role, Company/School, Tags, Socials - Linkedin, Whatsapp' },
-      { name: 'Profile Analytics', description: 'Get basic profile analytics - Profile views, Unique Visiors Count' },
-      { name: 'Contact Exchanges - 10 credits/month'},
-      { name: 'Profile Customization - Classic & Chrome - 3 colors'},
-      { name: 'Card Insurance*-Upto 2 months'}
-    ]
-  },
-  {
-    id: 'corporate',
-    name: 'Corporate',
-    prices: { monthly: 199, quarterly: 399 },
-    features: [
-      { name: 'Advanced Profiling', description: 'Novice + Industry info, Custom links - websites, brochures, portfolio etc.,'},
-      { name: 'Company details, Brochures'},
-      { name: 'Calendar Blocking', description: 'Integrate your Calendly profile' },
-      { name: 'Contact Exchanges - 50 credits/month'},
-      { name: 'Industry wise insights, intermediate profile analytics', description: 'Views grouped by Industry, Contact downloads count, Profile last viewed info' },
-      { name: 'Profile Customization - Classic & Chrome - 3 colors'},
-      { name: 'Card Insurance*-Upto 6 months'}
-    ]
-  },
-  {
-    id: 'elite',
-    name: 'Elite',
-    prices: { monthly: 299, quarterly: 599 },
-    features: [
-      { name: 'Get access to all the available features'},
-      { name: 'Get invited to exclusive invite-only networking events'},
-      { name: 'Detailed profile performance analysis', description: 'Get a detailed analysis of your profile performance - info like Highly performing links, Founder-level insights and lot more' },
-      { name: 'On profile calendar booking' },
-      { name: 'Unlimited contact exchanges', description: 'Exchange contacts without any limits.' },
-      { name: 'Exclusive Badge on Profile'},
-      { name: 'Custom materials and colors Customization', description: 'Customize materials and colors for your profile.' },
-      { name: 'Card Insurance*-Upto 12 months' },
-      { name: 'Priority Support 24x7' }
-    ]
-  },
-];
-
-module.exports = { plans };
+    {
+      id: 'novice',
+      name: 'Novice',
+      prices: { monthly: 99, quarterly: 199 },
+      tagline: 'Launch your digital presence',
+      benefits: [
+        {
+          title: 'Branded Digital Profile',
+          detail: 'Showcase your name, photo, banner, role, Company/University and more'
+        },
+        {
+          title: 'Essential Analytics',
+          detail: 'See total views & unique visitors in real time'
+        },
+        {
+          title: '10 Contact Exchange Credits/mo'
+        },
+        {
+          title: '3 Theme Styles',
+          detail: 'Choose from Classic or Chrome, each in 3 accent colors'
+        },
+        {
+          title: 'Comma Insurance for 2 months*'
+        }
+      ],
+      ctaLabel: 'Start Novice – ₹99/mo'
+    },
+    {
+      id: 'corporate',
+      name: 'Corporate',
+      prices: { monthly: 199, quarterly: 399 },
+      tagline: 'Elevate your professional brand',
+      benefits: [
+        {
+          title: 'All Novice Features',
+          detail: 'Plus advanced company & portfolio links'
+        },
+        {
+          title: 'Custom Link Library',
+          detail: 'Share brochures, websites & Portfolio URLs'
+        },
+        {
+          title: 'Calendar Integration',
+          detail: 'Embed your Calendly for instant bookings'
+        },
+        {
+          title: '50 Contact Exchange Credits/mo'
+        },
+        {
+          title: 'Advanced Insights',
+          detail: 'Break down views by sector, Contact download counts, etc.,'
+        },
+        {
+          title: 'Comma Insurance for 6 months*'
+        }
+      ],
+      ctaLabel: 'Start Corporate – ₹199/mo'
+    },
+    {
+      id: 'elite',
+      name: 'Elite',
+      prices: { monthly: 299, quarterly: 599 },
+      tagline: 'Unlock the networking power that only few hold',
+      benefits: [
+        {
+          title: 'Access to every single feature that is coded'
+        },
+        {
+          title: 'Exclusive Invite-Only Networking Events',
+          detail: 'Access exclusive events & communities'
+        },
+        {
+          title: 'Deep Performance Analytics',
+          detail: 'Pinpoint your top–performing links, Founder-level insights and lot more'
+        },
+        {
+          title: 'Seamless Bookings with In-profile calendar scheduling built-in'
+        },
+        {
+          title: 'Never worry about monthly limits for Contact Shares'
+        },
+        {
+          title: 'Stand out with our elite membership badge'
+        },
+        {
+          title: 'Full-Color Customization',
+          detail: 'Design your profile with expert selected color palette'
+        },
+        {
+          title: 'Comma Insurance for a full year'},
+        {
+          title: '24/7 Priority Support'
+        }
+      ],
+      ctaLabel: 'Start Elite – ₹299/mo'
+    }
+  ];
+  
+  module.exports = { plans };
+  
