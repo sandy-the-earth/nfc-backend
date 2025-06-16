@@ -48,8 +48,8 @@ const plans = [
       tagline: 'Elevate your professional brand',
       benefits: [
         {
-          title: 'All Novice Features',
-          detail: 'Plus advanced company & portfolio links'
+          title: 'Advanced Profiling',
+          detail: 'All Novice Features + Industry tag etc.,'
         },
         {
           title: 'Custom Link Library',
@@ -65,6 +65,10 @@ const plans = [
         {
           title: 'Advanced Insights',
           detail: 'Break down views by sector, Contact download counts, etc.,'
+        },
+        {
+            title: '7 Theme Styles',
+            detail: 'Choose from Classic or Chrome, each in 7 accent colors'
         },
         {
           title: 'Comma Insurance for 6 months*'
