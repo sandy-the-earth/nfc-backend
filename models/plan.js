@@ -64,7 +64,7 @@ const plans = [
         },
         {
           title: 'Advanced Insights',
-          detail: 'Break down views by sector, Contact download counts, etc.,'
+          detail: 'Break down views by sector, Contact download counts, Profile last viewed info, etc.,'
         },
         {
             title: '7 Theme Styles',
