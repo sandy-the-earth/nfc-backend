@@ -106,7 +106,7 @@ const plans = [
           detail: 'Design your profile with expert selected color palette & materials'
         },
         {
-          title: 'Comma Insurance for a full year'},
+          title: 'Comma Insurance for a full year*'},
         {
           title: '24/7 Priority Support'
         }
