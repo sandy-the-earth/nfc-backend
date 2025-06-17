@@ -84,35 +84,49 @@ router.get('/:activationCode/insights', async (req, res) => {
     console.log(`[DEBUG] Profile found - ID: ${profile._id}`);
     console.log(`[DEBUG] Raw profile data:`, {
       views: profile.views?.length,
-      linkClicks: profile.linkClicks,
-      contactExchanges: profile.contactExchanges
+      linkClicks: profile.linkClicks?.length,
+      contactExchanges: profile.contactExchanges?.length
     });
 
     // Calculate unique visitors (by ip+userAgent)
     const uniqueSet = new Set(profile.views.map(v => v.ip + '|' + v.userAgent));
 
-    // Find most popular contact method
-    let mostPopularContactMethod = null;
-    if (profile.linkClicks) {
-      const linkClicksObj = profile.linkClicks instanceof Map 
-        ? Object.fromEntries(profile.linkClicks)
-        : profile.linkClicks;
+    // Calculate link clicks statistics
+    let totalLinkTaps = 0;
+    let topLink = null;
+    let maxTaps = 0;
+    let linkTapsOverTime = [];
 
-      let max = 0;
-      for (const [method, count] of Object.entries(linkClicksObj)) {
-        if (count > max) {
-          max = count;
-          mostPopularContactMethod = method;
+    if (profile.linkClicks && profile.linkClicks.length > 0) {
+      // Group clicks by link
+      const linkGroups = profile.linkClicks.reduce((acc, click) => {
+        acc[click.link] = (acc[click.link] || 0) + 1;
+        return acc;
+      }, {});
+
+      // Find top link
+      for (const [link, count] of Object.entries(linkGroups)) {
+        totalLinkTaps += count;
+        if (count > maxTaps) {
+          maxTaps = count;
+          topLink = link;
         }
       }
+
+      // Create link taps over time data
+      linkTapsOverTime = Object.entries(linkGroups)
+        .map(([link, count]) => ({ link, count }))
+        .sort((a, b) => b.count - a.count);
     }
 
     const response = {
       totalViews: profile.views.length,
       uniqueVisitors: uniqueSet.size,
-      contactExchanges: profile.contactExchanges || 0,
+      contactExchanges: profile.contactExchanges?.length || 0,
       lastViewedAt: profile.lastViewedAt,
-      mostPopularContactMethod,
+      mostPopularContactMethod: topLink,
+      totalLinkTaps,
+      linkTapsOverTime,
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt
     };
@@ -141,8 +155,6 @@ router.post('/:activationCode/link-tap', async (req, res) => {
       return res.status(400).json({ message: 'Link is required' });
     }
 
-    console.log(`[DEBUG] Attempting to record link tap for link: ${link}`);
-
     const profile = await Profile.findOne({
       $or: [
         { activationCode: req.params.activationCode },
@@ -155,28 +167,21 @@ router.post('/:activationCode/link-tap', async (req, res) => {
       return res.status(404).json({ message: 'Profile not found' });
     }
 
-    console.log(`[DEBUG] Before update - Profile ID: ${profile._id}`);
-    console.log(`[DEBUG] Before update - LinkClicks:`, profile.linkClicks);
-
-    // Initialize linkClicks if it doesn't exist
+    // Initialize linkClicks as an array of objects, similar to views
     if (!profile.linkClicks) {
-      console.log(`[DEBUG] Initializing new linkClicks Map`);
-      profile.linkClicks = new Map();
+      profile.linkClicks = [];
     }
 
-    // Ensure linkClicks is a Map
-    if (!(profile.linkClicks instanceof Map)) {
-      console.log(`[DEBUG] Converting linkClicks to Map from:`, profile.linkClicks);
-      profile.linkClicks = new Map(Object.entries(profile.linkClicks));
-    }
+    // Add new link click with timestamp
+    profile.linkClicks.push({
+      link,
+      date: new Date(),
+      ip: req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress || '',
+      userAgent: req.headers['user-agent'] || ''
+    });
 
-    // Increment link click count
-    const currentCount = profile.linkClicks.get(link) || 0;
-    profile.linkClicks.set(link, currentCount + 1);
+    console.log(`[DEBUG] Added link click for ${link}, total clicks: ${profile.linkClicks.length}`);
     
-    console.log(`[DEBUG] After update - New count for ${link}: ${currentCount + 1}`);
-    console.log(`[DEBUG] After update - All linkClicks:`, Object.fromEntries(profile.linkClicks));
-
     try {
       await profile.save();
       console.log(`[DEBUG] Profile saved successfully`);
@@ -185,11 +190,17 @@ router.post('/:activationCode/link-tap', async (req, res) => {
       return res.status(500).json({ message: 'Failed to save profile update' });
     }
 
+    // Calculate total taps for this link
+    const linkTaps = profile.linkClicks.filter(click => click.link === link).length;
+
     res.json({ 
       message: 'Link tap recorded', 
       link, 
-      totalTaps: currentCount + 1,
-      allTaps: Object.fromEntries(profile.linkClicks)
+      totalTaps: linkTaps,
+      allTaps: profile.linkClicks.reduce((acc, click) => {
+        acc[click.link] = (acc[click.link] || 0) + 1;
+        return acc;
+      }, {})
     });
   } catch (err) {
     console.error('[ERROR] Error recording link tap:', err);
@@ -205,8 +216,6 @@ router.post('/:activationCode/contact-download', async (req, res) => {
       headers: req.headers
     });
 
-    console.log(`[DEBUG] Attempting to record contact download`);
-
     const profile = await Profile.findOne({
       $or: [
         { activationCode: req.params.activationCode },
@@ -219,18 +228,19 @@ router.post('/:activationCode/contact-download', async (req, res) => {
       return res.status(404).json({ message: 'Profile not found' });
     }
 
-    console.log(`[DEBUG] Before update - Profile ID: ${profile._id}`);
-    console.log(`[DEBUG] Before update - ContactExchanges: ${profile.contactExchanges}`);
-
-    // Initialize contactExchanges if it doesn't exist
-    if (typeof profile.contactExchanges !== 'number') {
-      console.log(`[DEBUG] Initializing contactExchanges to 0`);
-      profile.contactExchanges = 0;
+    // Initialize contactExchanges as an array of objects, similar to views
+    if (!profile.contactExchanges) {
+      profile.contactExchanges = [];
     }
 
-    // Increment contact downloads
-    profile.contactExchanges += 1;
-    console.log(`[DEBUG] After update - ContactExchanges: ${profile.contactExchanges}`);
+    // Add new contact exchange with timestamp
+    profile.contactExchanges.push({
+      date: new Date(),
+      ip: req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress || '',
+      userAgent: req.headers['user-agent'] || ''
+    });
+
+    console.log(`[DEBUG] Added contact exchange, total exchanges: ${profile.contactExchanges.length}`);
 
     try {
       await profile.save();
@@ -242,7 +252,7 @@ router.post('/:activationCode/contact-download', async (req, res) => {
 
     res.json({ 
       message: 'Contact download recorded', 
-      totalDownloads: profile.contactExchanges 
+      totalDownloads: profile.contactExchanges.length 
     });
   } catch (err) {
     console.error('[ERROR] Error recording contact download:', err);
