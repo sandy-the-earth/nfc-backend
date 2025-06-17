@@ -19,9 +19,16 @@ router.get('/:activationCode', async (req, res) => {
     // Track view (increment views, update lastViewedAt)
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress || '';
     const userAgent = req.headers['user-agent'] || '';
+    
+    // Initialize views array if it doesn't exist
+    if (!profile.views) {
+      profile.views = [];
+    }
+    
     profile.views.push({ date: new Date(), ip, userAgent });
     profile.lastViewedAt = new Date();
-    console.log(`Updated views count: ${profile.views.length}, lastViewedAt: ${profile.lastViewedAt}`); // Log updates
+    
+    console.log(`[View] Profile: ${profile._id}, Views count: ${profile.views.length}, Last viewed: ${profile.lastViewedAt}`);
     await profile.save();
 
     // Always expose a single 'slug' field
@@ -128,8 +135,8 @@ router.post('/:activationCode/link-tap', async (req, res) => {
     // Increment link click count
     const currentCount = profile.linkClicks.get(link) || 0;
     profile.linkClicks.set(link, currentCount + 1);
-    console.log(`Link tapped: ${link}, Total taps: ${currentCount + 1}`); // Log updates
-
+    
+    console.log(`[Link Tap] Profile: ${profile._id}, Link: ${link}, Total taps: ${currentCount + 1}`);
     await profile.save();
 
     res.json({ 
@@ -157,13 +164,20 @@ router.post('/:activationCode/contact-download', async (req, res) => {
       return res.status(404).json({ message: 'Profile not found' });
     }
 
-    // Increment contact downloads
-    profile.contactExchanges = (profile.contactExchanges || 0) + 1;
-    console.log(`Contact downloads incremented: ${profile.contactExchanges}`); // Log updates
+    // Initialize contactExchanges if it doesn't exist
+    if (typeof profile.contactExchanges !== 'number') {
+      profile.contactExchanges = 0;
+    }
 
+    // Increment contact downloads
+    profile.contactExchanges += 1;
+    console.log(`[Contact Download] Profile: ${profile._id}, Total downloads: ${profile.contactExchanges}`);
     await profile.save();
 
-    res.json({ message: 'Contact download recorded', totalDownloads: profile.contactExchanges });
+    res.json({ 
+      message: 'Contact download recorded', 
+      totalDownloads: profile.contactExchanges 
+    });
   } catch (err) {
     console.error('Error recording contact download:', err);
     res.status(500).json({ message: 'Server error' });

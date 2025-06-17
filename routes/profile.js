@@ -178,6 +178,12 @@ router.get('/:id/insights', async (req, res) => {
       return res.status(403).json({ message: 'Insights are not enabled for this profile.' });
     }
 
+    // Initialize arrays/objects if they don't exist
+    if (!profile.views) profile.views = [];
+    if (!profile.linkClicks) profile.linkClicks = new Map();
+    if (typeof profile.contactExchanges !== 'number') profile.contactExchanges = 0;
+    if (typeof profile.contactSaves !== 'number') profile.contactSaves = 0;
+
     // Aggregate views by day
     const viewCountsMap = {};
     for (const v of profile.views) {
@@ -196,6 +202,7 @@ router.get('/:id/insights', async (req, res) => {
     let totalLinkTaps = 0;
     let topLink = null;
     let maxTaps = 0;
+    let linkTapsOverTime = [];
     
     if (profile.linkClicks) {
       // Convert Map to Object if it's a Map
@@ -211,17 +218,22 @@ router.get('/:id/insights', async (req, res) => {
           topLink = link;
         }
       }
+
+      // Create link taps over time data
+      linkTapsOverTime = Object.entries(linkClicksObj)
+        .map(([link, count]) => ({ link, count }))
+        .sort((a, b) => b.count - a.count);
     }
 
-    // Get contact download count
-    const contactDownloads = profile.contactExchanges || 0;
+    console.log(`[Insights] Profile: ${profile._id}, Views: ${profile.views.length}, Unique: ${uniqueSet.size}, Links: ${totalLinkTaps}, Downloads: ${profile.contactExchanges}`);
 
     res.json({
       totalViews: profile.views.length,
       uniqueVisitors: uniqueSet.size,
-      contactExchanges: contactDownloads,
-      contactSaves: profile.contactSaves || 0,
+      contactExchanges: profile.contactExchanges,
+      contactSaves: profile.contactSaves,
       viewCountsOverTime,
+      linkTapsOverTime,
       lastViewedAt: profile.lastViewedAt,
       mostPopularContactMethod: topLink,
       totalLinkTaps,
