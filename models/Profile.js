@@ -107,24 +107,22 @@ const profileSchema = new mongoose.Schema({
       userAgent: String
     }
   ],
-  linkClicks: [
-    {
-      link: String,
-      date: { type: Date, default: Date.now },
-      ip: String,
-      userAgent: String
-    }
-  ],
-  contactExchanges: [
-    {
-      date: { type: Date, default: Date.now },
-      ip: String,
-      userAgent: String
-    }
-  ],
+  contactExchanges: {
+    type: Number,
+    default: 0
+  },
+  contactSaves: {
+    type: Number,
+    default: 0
+  },
   lastViewedAt: {
     type: Date,
     default: null
+  },
+  linkClicks: {
+    type: Map,
+    of: Number,
+    default: {}
   },
   insightsEnabled: {
     type: Boolean,

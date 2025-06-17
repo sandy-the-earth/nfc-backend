@@ -65,77 +65,40 @@ router.get('/:activationCode', async (req, res) => {
 // GET /api/public/:activationCode/insights
 router.get('/:activationCode/insights', async (req, res) => {
   try {
-    console.log('[DEBUG] Insights request received:', {
-      params: req.params,
-      headers: req.headers
-    });
-
     const profile = await Profile.findOne({
       $or: [
         { activationCode: req.params.activationCode },
         { customSlug: req.params.activationCode }
       ]
     });
-    if (!profile) {
-      console.log(`[DEBUG] Profile not found for code: ${req.params.activationCode}`);
-      return res.status(404).json({ message: 'Profile not found' });
-    }
-
-    console.log(`[DEBUG] Profile found - ID: ${profile._id}`);
-    console.log(`[DEBUG] Raw profile data:`, {
-      views: profile.views?.length,
-      linkClicks: profile.linkClicks?.length,
-      contactExchanges: profile.contactExchanges?.length
-    });
+    if (!profile) return res.status(404).json({ message: 'Profile not found' });
 
     // Calculate unique visitors (by ip+userAgent)
     const uniqueSet = new Set(profile.views.map(v => v.ip + '|' + v.userAgent));
 
-    // Calculate link clicks statistics
-    let totalLinkTaps = 0;
-    let topLink = null;
-    let maxTaps = 0;
-    let linkTapsOverTime = [];
-
-    if (profile.linkClicks && profile.linkClicks.length > 0) {
-      // Group clicks by link
-      const linkGroups = profile.linkClicks.reduce((acc, click) => {
-        acc[click.link] = (acc[click.link] || 0) + 1;
-        return acc;
-      }, {});
-
-      // Find top link
-      for (const [link, count] of Object.entries(linkGroups)) {
-        totalLinkTaps += count;
-        if (count > maxTaps) {
-          maxTaps = count;
-          topLink = link;
+    // Find most popular contact method
+    let mostPopularContactMethod = null;
+    if (profile.linkClicks && Object.keys(profile.linkClicks).length > 0) {
+      let max = 0;
+      for (const [method, count] of Object.entries(profile.linkClicks)) {
+        if (count > max) {
+          max = count;
+          mostPopularContactMethod = method;
         }
       }
-
-      // Create link taps over time data
-      linkTapsOverTime = Object.entries(linkGroups)
-        .map(([link, count]) => ({ link, count }))
-        .sort((a, b) => b.count - a.count);
     }
 
-    const response = {
+    res.json({
       totalViews: profile.views.length,
       uniqueVisitors: uniqueSet.size,
-      contactExchanges: profile.contactExchanges?.length || 0,
+      contactExchanges: profile.contactExchanges || 0,
       lastViewedAt: profile.lastViewedAt,
-      mostPopularContactMethod: topLink,
-      totalLinkTaps,
-      linkTapsOverTime,
+      mostPopularContactMethod,
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt
-    };
-
-    console.log(`[DEBUG] Sending insights response:`, response);
-
-    res.json(response);
+    });
   } catch (err) {
-    console.error('[ERROR] Insights error:', err);
+    console.error('Insights error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -143,17 +106,12 @@ router.get('/:activationCode/insights', async (req, res) => {
 // Ensure proper handling of linkTaps and other params
 router.post('/:activationCode/link-tap', async (req, res) => {
   try {
-    console.log('[DEBUG] Link tap request received:', {
-      params: req.params,
-      body: req.body,
-      headers: req.headers
-    });
-
     const { link } = req.body;
     if (!link) {
-      console.log('[DEBUG] Link parameter missing in request body');
       return res.status(400).json({ message: 'Link is required' });
     }
+
+    console.log(`[DEBUG] Attempting to record link tap for link: ${link}`);
 
     const profile = await Profile.findOne({
       $or: [
@@ -167,40 +125,36 @@ router.post('/:activationCode/link-tap', async (req, res) => {
       return res.status(404).json({ message: 'Profile not found' });
     }
 
-    // Initialize linkClicks as an array of objects, similar to views
+    console.log(`[DEBUG] Before update - Profile ID: ${profile._id}`);
+    console.log(`[DEBUG] Before update - LinkClicks:`, profile.linkClicks);
+
+    // Initialize linkClicks if it doesn't exist
     if (!profile.linkClicks) {
-      profile.linkClicks = [];
+      console.log(`[DEBUG] Initializing new linkClicks Map`);
+      profile.linkClicks = new Map();
     }
 
-    // Add new link click with timestamp
-    profile.linkClicks.push({
-      link,
-      date: new Date(),
-      ip: req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress || '',
-      userAgent: req.headers['user-agent'] || ''
-    });
+    // Ensure linkClicks is a Map
+    if (!(profile.linkClicks instanceof Map)) {
+      console.log(`[DEBUG] Converting linkClicks to Map from:`, profile.linkClicks);
+      profile.linkClicks = new Map(Object.entries(profile.linkClicks));
+    }
 
-    console.log(`[DEBUG] Added link click for ${link}, total clicks: ${profile.linkClicks.length}`);
+    // Increment link click count
+    const currentCount = profile.linkClicks.get(link) || 0;
+    profile.linkClicks.set(link, currentCount + 1);
     
-    try {
-      await profile.save();
-      console.log(`[DEBUG] Profile saved successfully`);
-    } catch (saveError) {
-      console.error('[ERROR] Failed to save profile:', saveError);
-      return res.status(500).json({ message: 'Failed to save profile update' });
-    }
+    console.log(`[DEBUG] After update - New count for ${link}: ${currentCount + 1}`);
+    console.log(`[DEBUG] After update - All linkClicks:`, Object.fromEntries(profile.linkClicks));
 
-    // Calculate total taps for this link
-    const linkTaps = profile.linkClicks.filter(click => click.link === link).length;
+    await profile.save();
+    console.log(`[DEBUG] Profile saved successfully`);
 
     res.json({ 
       message: 'Link tap recorded', 
       link, 
-      totalTaps: linkTaps,
-      allTaps: profile.linkClicks.reduce((acc, click) => {
-        acc[click.link] = (acc[click.link] || 0) + 1;
-        return acc;
-      }, {})
+      totalTaps: currentCount + 1,
+      allTaps: Object.fromEntries(profile.linkClicks)
     });
   } catch (err) {
     console.error('[ERROR] Error recording link tap:', err);
@@ -210,11 +164,7 @@ router.post('/:activationCode/link-tap', async (req, res) => {
 
 router.post('/:activationCode/contact-download', async (req, res) => {
   try {
-    console.log('[DEBUG] Contact download request received:', {
-      params: req.params,
-      body: req.body,
-      headers: req.headers
-    });
+    console.log(`[DEBUG] Attempting to record contact download`);
 
     const profile = await Profile.findOne({
       $or: [
@@ -228,31 +178,25 @@ router.post('/:activationCode/contact-download', async (req, res) => {
       return res.status(404).json({ message: 'Profile not found' });
     }
 
-    // Initialize contactExchanges as an array of objects, similar to views
-    if (!profile.contactExchanges) {
-      profile.contactExchanges = [];
+    console.log(`[DEBUG] Before update - Profile ID: ${profile._id}`);
+    console.log(`[DEBUG] Before update - ContactExchanges: ${profile.contactExchanges}`);
+
+    // Initialize contactExchanges if it doesn't exist
+    if (typeof profile.contactExchanges !== 'number') {
+      console.log(`[DEBUG] Initializing contactExchanges to 0`);
+      profile.contactExchanges = 0;
     }
 
-    // Add new contact exchange with timestamp
-    profile.contactExchanges.push({
-      date: new Date(),
-      ip: req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress || '',
-      userAgent: req.headers['user-agent'] || ''
-    });
+    // Increment contact downloads
+    profile.contactExchanges += 1;
+    console.log(`[DEBUG] After update - ContactExchanges: ${profile.contactExchanges}`);
 
-    console.log(`[DEBUG] Added contact exchange, total exchanges: ${profile.contactExchanges.length}`);
-
-    try {
-      await profile.save();
-      console.log(`[DEBUG] Profile saved successfully`);
-    } catch (saveError) {
-      console.error('[ERROR] Failed to save profile:', saveError);
-      return res.status(500).json({ message: 'Failed to save profile update' });
-    }
+    await profile.save();
+    console.log(`[DEBUG] Profile saved successfully`);
 
     res.json({ 
       message: 'Contact download recorded', 
-      totalDownloads: profile.contactExchanges.length 
+      totalDownloads: profile.contactExchanges 
     });
   } catch (err) {
     console.error('[ERROR] Error recording contact download:', err);
