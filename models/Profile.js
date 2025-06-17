@@ -133,6 +133,13 @@ const profileSchema = new mongoose.Schema({
   industry: {
     type: String,
     default: ''
+  },
+
+  // Add theme field to the profile schema
+  theme: {
+    type: String,
+    enum: ['light', 'dark'],
+    default: 'light'
   }
 }, { timestamps: true });
 

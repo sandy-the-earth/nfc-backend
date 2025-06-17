@@ -154,6 +154,21 @@ router.patch('/:id/exclusive-badge', async (req, res) => {
   }
 });
 
+// PATCH /api/profile/:id/theme
+router.patch('/:id/theme', async (req, res) => {
+  const { theme } = req.body;
+  if (!['light', 'dark'].includes(theme)) {
+    return res.status(400).json({ message: 'Invalid theme' });
+  }
+  const profile = await Profile.findByIdAndUpdate(
+    req.params.id,
+    { theme },
+    { new: true }
+  );
+  if (!profile) return res.status(404).json({ message: 'Profile not found' });
+  res.json({ message: 'Theme updated', theme: profile.theme });
+});
+
 // GET /api/profile/:id/insights (dashboard only, for owner)
 router.get('/:id/insights', async (req, res) => {
   try {
