@@ -65,22 +65,41 @@ router.get('/:activationCode', async (req, res) => {
 // GET /api/public/:activationCode/insights
 router.get('/:activationCode/insights', async (req, res) => {
   try {
+    console.log('[DEBUG] Insights request received:', {
+      params: req.params,
+      headers: req.headers
+    });
+
     const profile = await Profile.findOne({
       $or: [
         { activationCode: req.params.activationCode },
         { customSlug: req.params.activationCode }
       ]
     });
-    if (!profile) return res.status(404).json({ message: 'Profile not found' });
+    if (!profile) {
+      console.log(`[DEBUG] Profile not found for code: ${req.params.activationCode}`);
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+
+    console.log(`[DEBUG] Profile found - ID: ${profile._id}`);
+    console.log(`[DEBUG] Raw profile data:`, {
+      views: profile.views?.length,
+      linkClicks: profile.linkClicks,
+      contactExchanges: profile.contactExchanges
+    });
 
     // Calculate unique visitors (by ip+userAgent)
     const uniqueSet = new Set(profile.views.map(v => v.ip + '|' + v.userAgent));
 
     // Find most popular contact method
     let mostPopularContactMethod = null;
-    if (profile.linkClicks && Object.keys(profile.linkClicks).length > 0) {
+    if (profile.linkClicks) {
+      const linkClicksObj = profile.linkClicks instanceof Map 
+        ? Object.fromEntries(profile.linkClicks)
+        : profile.linkClicks;
+
       let max = 0;
-      for (const [method, count] of Object.entries(profile.linkClicks)) {
+      for (const [method, count] of Object.entries(linkClicksObj)) {
         if (count > max) {
           max = count;
           mostPopularContactMethod = method;
@@ -88,7 +107,7 @@ router.get('/:activationCode/insights', async (req, res) => {
       }
     }
 
-    res.json({
+    const response = {
       totalViews: profile.views.length,
       uniqueVisitors: uniqueSet.size,
       contactExchanges: profile.contactExchanges || 0,
@@ -96,9 +115,13 @@ router.get('/:activationCode/insights', async (req, res) => {
       mostPopularContactMethod,
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt
-    });
+    };
+
+    console.log(`[DEBUG] Sending insights response:`, response);
+
+    res.json(response);
   } catch (err) {
-    console.error('Insights error:', err);
+    console.error('[ERROR] Insights error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -106,8 +129,15 @@ router.get('/:activationCode/insights', async (req, res) => {
 // Ensure proper handling of linkTaps and other params
 router.post('/:activationCode/link-tap', async (req, res) => {
   try {
+    console.log('[DEBUG] Link tap request received:', {
+      params: req.params,
+      body: req.body,
+      headers: req.headers
+    });
+
     const { link } = req.body;
     if (!link) {
+      console.log('[DEBUG] Link parameter missing in request body');
       return res.status(400).json({ message: 'Link is required' });
     }
 
@@ -147,8 +177,13 @@ router.post('/:activationCode/link-tap', async (req, res) => {
     console.log(`[DEBUG] After update - New count for ${link}: ${currentCount + 1}`);
     console.log(`[DEBUG] After update - All linkClicks:`, Object.fromEntries(profile.linkClicks));
 
-    await profile.save();
-    console.log(`[DEBUG] Profile saved successfully`);
+    try {
+      await profile.save();
+      console.log(`[DEBUG] Profile saved successfully`);
+    } catch (saveError) {
+      console.error('[ERROR] Failed to save profile:', saveError);
+      return res.status(500).json({ message: 'Failed to save profile update' });
+    }
 
     res.json({ 
       message: 'Link tap recorded', 
@@ -164,6 +199,12 @@ router.post('/:activationCode/link-tap', async (req, res) => {
 
 router.post('/:activationCode/contact-download', async (req, res) => {
   try {
+    console.log('[DEBUG] Contact download request received:', {
+      params: req.params,
+      body: req.body,
+      headers: req.headers
+    });
+
     console.log(`[DEBUG] Attempting to record contact download`);
 
     const profile = await Profile.findOne({
@@ -191,8 +232,13 @@ router.post('/:activationCode/contact-download', async (req, res) => {
     profile.contactExchanges += 1;
     console.log(`[DEBUG] After update - ContactExchanges: ${profile.contactExchanges}`);
 
-    await profile.save();
-    console.log(`[DEBUG] Profile saved successfully`);
+    try {
+      await profile.save();
+      console.log(`[DEBUG] Profile saved successfully`);
+    } catch (saveError) {
+      console.error('[ERROR] Failed to save profile:', saveError);
+      return res.status(500).json({ message: 'Failed to save profile update' });
+    }
 
     res.json({ 
       message: 'Contact download recorded', 
