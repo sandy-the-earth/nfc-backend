@@ -115,17 +115,29 @@ router.post('/:activationCode/link-tap', async (req, res) => {
       return res.status(404).json({ message: 'Profile not found' });
     }
 
-    // Increment link click count
+    // Initialize linkClicks if it doesn't exist
     if (!profile.linkClicks) {
-      profile.linkClicks = {}; // Initialize as plain object
+      profile.linkClicks = new Map();
     }
-    const currentCount = profile.linkClicks[link] || 0;
-    profile.linkClicks[link] = currentCount + 1;
+
+    // Ensure linkClicks is a Map
+    if (!(profile.linkClicks instanceof Map)) {
+      profile.linkClicks = new Map(Object.entries(profile.linkClicks));
+    }
+
+    // Increment link click count
+    const currentCount = profile.linkClicks.get(link) || 0;
+    profile.linkClicks.set(link, currentCount + 1);
     console.log(`Link tapped: ${link}, Total taps: ${currentCount + 1}`); // Log updates
 
     await profile.save();
 
-    res.json({ message: 'Link tap recorded', link, totalTaps: currentCount + 1 });
+    res.json({ 
+      message: 'Link tap recorded', 
+      link, 
+      totalTaps: currentCount + 1,
+      allTaps: Object.fromEntries(profile.linkClicks)
+    });
   } catch (err) {
     console.error('Error recording link tap:', err);
     res.status(500).json({ message: 'Server error' });

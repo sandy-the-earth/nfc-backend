@@ -177,23 +177,55 @@ router.get('/:id/insights', async (req, res) => {
     if (!profile.insightsEnabled) {
       return res.status(403).json({ message: 'Insights are not enabled for this profile.' });
     }
+
+    // Aggregate views by day
+    const viewCountsMap = {};
+    for (const v of profile.views) {
+      const d = new Date(v.date);
+      const dateStr = d.toISOString().slice(0, 10); // YYYY-MM-DD
+      viewCountsMap[dateStr] = (viewCountsMap[dateStr] || 0) + 1;
+    }
+    const viewCountsOverTime = Object.entries(viewCountsMap)
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    // Calculate unique visitors
     const uniqueSet = new Set(profile.views.map(v => v.ip + '|' + v.userAgent));
-    let mostPopularContactMethod = null;
-    if (profile.linkClicks && profile.linkClicks.size > 0) {
-      let max = 0;
-      for (const [method, count] of profile.linkClicks.entries()) {
-        if (count > max) {
-          max = count;
-          mostPopularContactMethod = method;
+
+    // Process link clicks
+    let totalLinkTaps = 0;
+    let topLink = null;
+    let maxTaps = 0;
+    
+    if (profile.linkClicks) {
+      // Convert Map to Object if it's a Map
+      const linkClicksObj = profile.linkClicks instanceof Map 
+        ? Object.fromEntries(profile.linkClicks)
+        : profile.linkClicks;
+
+      // Calculate total taps and find top link
+      for (const [link, count] of Object.entries(linkClicksObj)) {
+        totalLinkTaps += count;
+        if (count > maxTaps) {
+          maxTaps = count;
+          topLink = link;
         }
       }
     }
+
+    // Get contact download count
+    const contactDownloads = profile.contactExchanges || 0;
+
     res.json({
       totalViews: profile.views.length,
       uniqueVisitors: uniqueSet.size,
-      contactExchanges: profile.contactExchanges || 0,
+      contactExchanges: contactDownloads,
+      contactSaves: profile.contactSaves || 0,
+      viewCountsOverTime,
       lastViewedAt: profile.lastViewedAt,
-      mostPopularContactMethod,
+      mostPopularContactMethod: topLink,
+      totalLinkTaps,
+      topLink,
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt
     });
