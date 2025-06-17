@@ -172,43 +172,20 @@ router.patch('/:id/theme', async (req, res) => {
 // GET /api/profile/:id/insights (dashboard only, for owner)
 router.get('/:id/insights', async (req, res) => {
   try {
-    console.log(`[DEBUG] Fetching insights for profile ID: ${req.params.id}`);
-    
     const profile = await Profile.findById(req.params.id);
     if (!profile) {
-      console.log(`[DEBUG] Profile not found for ID: ${req.params.id}`);
       return res.status(404).json({ message: 'Profile not found' });
     }
     
     if (!profile.insightsEnabled) {
-      console.log(`[DEBUG] Insights not enabled for profile: ${req.params.id}`);
       return res.status(403).json({ message: 'Insights are not enabled for this profile.' });
     }
 
-    console.log(`[DEBUG] Raw profile data:`, {
-      views: profile.views?.length,
-      linkClicks: profile.linkClicks,
-      contactExchanges: profile.contactExchanges,
-      contactSaves: profile.contactSaves
-    });
-
     // Initialize arrays/objects if they don't exist
-    if (!profile.views) {
-      console.log(`[DEBUG] Initializing views array`);
-      profile.views = [];
-    }
-    if (!profile.linkClicks) {
-      console.log(`[DEBUG] Initializing linkClicks Map`);
-      profile.linkClicks = new Map();
-    }
-    if (typeof profile.contactExchanges !== 'number') {
-      console.log(`[DEBUG] Initializing contactExchanges to 0`);
-      profile.contactExchanges = 0;
-    }
-    if (typeof profile.contactSaves !== 'number') {
-      console.log(`[DEBUG] Initializing contactSaves to 0`);
-      profile.contactSaves = 0;
-    }
+    if (!profile.views) profile.views = [];
+    if (!profile.linkClicks) profile.linkClicks = new Map();
+    if (typeof profile.contactExchanges !== 'number') profile.contactExchanges = 0;
+    if (typeof profile.contactSaves !== 'number') profile.contactSaves = 0;
 
     // Aggregate views by day
     const viewCountsMap = {};
@@ -221,11 +198,8 @@ router.get('/:id/insights', async (req, res) => {
       .map(([date, count]) => ({ date, count }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    console.log(`[DEBUG] View counts over time:`, viewCountsOverTime);
-
     // Calculate unique visitors
     const uniqueSet = new Set(profile.views.map(v => v.ip + '|' + v.userAgent));
-    console.log(`[DEBUG] Unique visitors count: ${uniqueSet.size}`);
 
     // Process link clicks
     let totalLinkTaps = 0;
@@ -234,14 +208,10 @@ router.get('/:id/insights', async (req, res) => {
     let linkTapsOverTime = [];
     
     if (profile.linkClicks) {
-      console.log(`[DEBUG] Processing link clicks:`, profile.linkClicks);
-      
       // Convert Map to Object if it's a Map
       const linkClicksObj = profile.linkClicks instanceof Map 
         ? Object.fromEntries(profile.linkClicks)
         : profile.linkClicks;
-
-      console.log(`[DEBUG] Link clicks object:`, linkClicksObj);
 
       // Calculate total taps and find top link
       for (const [link, count] of Object.entries(linkClicksObj)) {
@@ -258,15 +228,6 @@ router.get('/:id/insights', async (req, res) => {
         .sort((a, b) => b.count - a.count);
     }
 
-    console.log(`[DEBUG] Final insights data:`, {
-      totalViews: profile.views.length,
-      uniqueVisitors: uniqueSet.size,
-      totalLinkTaps,
-      topLink,
-      contactExchanges: profile.contactExchanges,
-      contactSaves: profile.contactSaves
-    });
-
     res.json({
       totalViews: profile.views.length,
       uniqueVisitors: uniqueSet.size,
@@ -282,7 +243,7 @@ router.get('/:id/insights', async (req, res) => {
       updatedAt: profile.updatedAt
     });
   } catch (err) {
-    console.error('[ERROR] Dashboard insights error:', err);
+    console.error('Dashboard insights error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });

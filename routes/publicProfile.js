@@ -27,8 +27,6 @@ router.get('/:activationCode', async (req, res) => {
     
     profile.views.push({ date: new Date(), ip, userAgent });
     profile.lastViewedAt = new Date();
-    
-    console.log(`[View] Profile: ${profile._id}, Views count: ${profile.views.length}, Last viewed: ${profile.lastViewedAt}`);
     await profile.save();
 
     // Always expose a single 'slug' field
@@ -111,8 +109,6 @@ router.post('/:activationCode/link-tap', async (req, res) => {
       return res.status(400).json({ message: 'Link is required' });
     }
 
-    console.log(`[DEBUG] Attempting to record link tap for link: ${link}`);
-
     const profile = await Profile.findOne({
       $or: [
         { activationCode: req.params.activationCode },
@@ -121,34 +117,23 @@ router.post('/:activationCode/link-tap', async (req, res) => {
     });
 
     if (!profile) {
-      console.log(`[DEBUG] Profile not found for code: ${req.params.activationCode}`);
       return res.status(404).json({ message: 'Profile not found' });
     }
 
-    console.log(`[DEBUG] Before update - Profile ID: ${profile._id}`);
-    console.log(`[DEBUG] Before update - LinkClicks:`, profile.linkClicks);
-
     // Initialize linkClicks if it doesn't exist
     if (!profile.linkClicks) {
-      console.log(`[DEBUG] Initializing new linkClicks Map`);
       profile.linkClicks = new Map();
     }
 
     // Ensure linkClicks is a Map
     if (!(profile.linkClicks instanceof Map)) {
-      console.log(`[DEBUG] Converting linkClicks to Map from:`, profile.linkClicks);
       profile.linkClicks = new Map(Object.entries(profile.linkClicks));
     }
 
     // Increment link click count
     const currentCount = profile.linkClicks.get(link) || 0;
     profile.linkClicks.set(link, currentCount + 1);
-    
-    console.log(`[DEBUG] After update - New count for ${link}: ${currentCount + 1}`);
-    console.log(`[DEBUG] After update - All linkClicks:`, Object.fromEntries(profile.linkClicks));
-
     await profile.save();
-    console.log(`[DEBUG] Profile saved successfully`);
 
     res.json({ 
       message: 'Link tap recorded', 
@@ -157,15 +142,13 @@ router.post('/:activationCode/link-tap', async (req, res) => {
       allTaps: Object.fromEntries(profile.linkClicks)
     });
   } catch (err) {
-    console.error('[ERROR] Error recording link tap:', err);
+    console.error('Error recording link tap:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 router.post('/:activationCode/contact-download', async (req, res) => {
   try {
-    console.log(`[DEBUG] Attempting to record contact download`);
-
     const profile = await Profile.findOne({
       $or: [
         { activationCode: req.params.activationCode },
@@ -174,32 +157,24 @@ router.post('/:activationCode/contact-download', async (req, res) => {
     });
 
     if (!profile) {
-      console.log(`[DEBUG] Profile not found for code: ${req.params.activationCode}`);
       return res.status(404).json({ message: 'Profile not found' });
     }
 
-    console.log(`[DEBUG] Before update - Profile ID: ${profile._id}`);
-    console.log(`[DEBUG] Before update - ContactExchanges: ${profile.contactExchanges}`);
-
     // Initialize contactExchanges if it doesn't exist
     if (typeof profile.contactExchanges !== 'number') {
-      console.log(`[DEBUG] Initializing contactExchanges to 0`);
       profile.contactExchanges = 0;
     }
 
     // Increment contact downloads
     profile.contactExchanges += 1;
-    console.log(`[DEBUG] After update - ContactExchanges: ${profile.contactExchanges}`);
-
     await profile.save();
-    console.log(`[DEBUG] Profile saved successfully`);
 
     res.json({ 
       message: 'Contact download recorded', 
       totalDownloads: profile.contactExchanges 
     });
   } catch (err) {
-    console.error('[ERROR] Error recording contact download:', err);
+    console.error('Error recording contact download:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
