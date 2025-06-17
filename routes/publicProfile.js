@@ -24,47 +24,30 @@ router.get('/:activationCode', async (req, res) => {
     console.log(`Updated views count: ${profile.views.length}, lastViewedAt: ${profile.lastViewedAt}`); // Log updates
     await profile.save();
 
-    const {
-      bannerUrl,
-      avatarUrl,
-      name,
-      title,
-      subtitle,
-      location,
-      tags,
-      phone,
-      website,
-      ownerEmail,
-      socialLinks = {},
-      createdAt,
-      customSlug,
-      activationCode,
-      industry // <-- add industry
-    } = profile;
-
     // Always expose a single 'slug' field
-    const slug = customSlug || activationCode;
+    const slug = profile.customSlug || profile.activationCode;
 
     res.json({
       slug,
-      bannerUrl,
-      avatarUrl,
-      name: name || '',
-      title: title || '',
-      subtitle: subtitle || '',
-      location: location || '',
-      tags: Array.isArray(tags) ? tags : [],
-      phone: phone || '',
-      website: website || '',
-      email: ownerEmail || '',
+      bannerUrl: profile.bannerUrl || '',
+      avatarUrl: profile.avatarUrl || '',
+      name: profile.name || '',
+      title: profile.title || '',
+      subtitle: profile.subtitle || '',
+      location: profile.location || '',
+      tags: Array.isArray(profile.tags) ? profile.tags : [],
+      phone: profile.phone || '',
+      website: profile.website || '',
+      email: profile.ownerEmail || '',
       socialLinks: {
-        instagram: socialLinks.instagram || '',
-        linkedin: socialLinks.linkedin || '',
-        twitter: socialLinks.twitter || ''
+        instagram: profile.socialLinks?.instagram || '',
+        linkedin: profile.socialLinks?.linkedin || '',
+        twitter: profile.socialLinks?.twitter || ''
       },
-      createdAt,
+      createdAt: profile.createdAt,
       exclusiveBadge: profile.exclusiveBadge || null,
-      industry: industry || '' // <-- add industry to response
+      industry: profile.industry || '',
+      theme: profile.theme || 'light'
     });
   } catch (err) {
     console.error('❌ Public profile fetch error:', err);
