@@ -45,6 +45,7 @@ const profileRoutes = require('./routes/profile');
 const publicProfileRoutes = require('./routes/publicProfile');
 const contactRoutes = require('./routes/contact');
 const plansRoutes = require('./routes/plans');
+const subscriptionRoutes = require('./routes/subscription');
 
 // Route Mounting
 app.use('/api/admin-bs1978av1123ss2402', adminRoutes);
@@ -55,6 +56,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/public', publicProfileRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/plans', plansRoutes);
+app.use('/api/subscription', subscriptionRoutes);
 
 // Health check route
 app.get('/', (req, res) => {

@@ -140,6 +140,17 @@ const profileSchema = new mongoose.Schema({
     type: String,
     enum: ['light', 'dark'],
     default: 'light'
+  },
+
+  // Subscription fields
+  subscription: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Subscription'
+  },
+  subscriptionPlan: {
+    type: String,
+    enum: ['novice', 'corporate', 'elite'],
+    default: 'novice'
   }
 }, { timestamps: true });
 

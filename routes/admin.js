@@ -3,6 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const Profile = require('../models/Profile');
+const Subscription = require('../models/Subscription');
 const { Parser } = require('json2csv');
 const adminAuth = require('../middleware/adminauth');
 
@@ -263,6 +264,85 @@ router.get('/profile/:id/insights', async (req, res) => {
     });
   } catch (err) {
     console.error('Admin insights error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ─── ADMIN DASHBOARD MANAGEMENT ─────────────────────────────────────────────
+// GET /api/admin-bs1978av1123ss2402/dashboard/:profileId
+router.get('/dashboard/:profileId', async (req, res) => {
+  try {
+    const profile = await Profile.findById(req.params.profileId)
+      .populate('subscription')
+      .lean();
+
+    if (!profile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+
+    // Get subscription details
+    const subscription = await Subscription.findOne({ profileId: profile._id });
+
+    // Get profile insights
+    const uniqueSet = new Set(profile.views.map(v => v.ip + '|' + v.userAgent));
+    const viewCountsMap = {};
+    for (const v of profile.views) {
+      const d = new Date(v.date);
+      const dateStr = d.toISOString().slice(0, 10);
+      viewCountsMap[dateStr] = (viewCountsMap[dateStr] || 0) + 1;
+    }
+
+    const viewCountsOverTime = Object.entries(viewCountsMap)
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    // Get most popular contact method
+    let mostPopularContactMethod = null;
+    if (profile.linkClicks && profile.linkClicks.size > 0) {
+      let max = 0;
+      for (const [method, count] of profile.linkClicks.entries()) {
+        if (count > max) {
+          max = count;
+          mostPopularContactMethod = method;
+        }
+      }
+    }
+
+    // Compile dashboard data
+    const dashboardData = {
+      profile: {
+        _id: profile._id,
+        name: profile.name,
+        email: profile.ownerEmail,
+        status: profile.status,
+        createdAt: profile.createdAt,
+        lastViewedAt: profile.lastViewedAt,
+        exclusiveBadge: profile.exclusiveBadge,
+        insightsEnabled: profile.insightsEnabled,
+        subscriptionPlan: profile.subscriptionPlan
+      },
+      subscription: subscription ? {
+        plan: subscription.plan,
+        status: subscription.status,
+        startDate: subscription.startDate,
+        endDate: subscription.endDate,
+        billingCycle: subscription.billingCycle,
+        amount: subscription.amount,
+        autoRenew: subscription.autoRenew
+      } : null,
+      insights: {
+        totalViews: profile.views.length,
+        uniqueVisitors: uniqueSet.size,
+        contactExchanges: profile.contactExchanges || 0,
+        viewCountsOverTime,
+        mostPopularContactMethod,
+        linkClicks: Object.fromEntries(profile.linkClicks || new Map())
+      }
+    };
+
+    res.json(dashboardData);
+  } catch (err) {
+    console.error('Admin: error fetching dashboard data:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
