@@ -140,6 +140,14 @@ const profileSchema = new mongoose.Schema({
     type: String,
     enum: ['light', 'dark'],
     default: 'light'
+  },
+
+  // Subscription info
+  subscription: {
+    plan: { type: String, default: null },
+    cycle: { type: String, default: null },
+    activatedAt: { type: Date, default: null },
+    code: { type: String, default: null }
   }
 }, { timestamps: true });
 
