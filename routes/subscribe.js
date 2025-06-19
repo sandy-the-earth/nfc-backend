@@ -112,4 +112,29 @@ router.post('/activate-code', async (req, res) => {
   }
 });
 
+// Admin: Add or update a subscription for a profile
+router.post('/add-subscription', async (req, res) => {
+  try {
+    const { profileId, plan, cycle, activatedAt, code } = req.body;
+    if (!profileId || !plan || !cycle) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+    const profile = await Profile.findById(profileId);
+    if (!profile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+    profile.subscription = {
+      plan,
+      cycle,
+      activatedAt: activatedAt ? new Date(activatedAt) : new Date(),
+      code: code || null
+    };
+    await profile.save();
+    res.json({ message: 'Subscription added/updated', subscription: profile.subscription });
+  } catch (err) {
+    console.error('Add subscription error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router; 
