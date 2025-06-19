@@ -215,7 +215,30 @@ router.get('/profile/:id', async (req, res) => {
     if (!profile) {
       return res.status(404).json({ message: 'Profile not found' });
     }
-    res.json(profile);
+    // Prepare subscription details with expiresAt
+    let subscription = null;
+    if (profile.subscription && profile.subscription.plan && profile.subscription.activatedAt) {
+      const { plan, cycle, activatedAt, code } = profile.subscription;
+      let expiresAt = null;
+      if (cycle && activatedAt) {
+        const start = new Date(activatedAt);
+        if (cycle === 'monthly') {
+          expiresAt = new Date(start.setMonth(start.getMonth() + 1));
+        } else if (cycle === 'quarterly') {
+          expiresAt = new Date(start.setMonth(start.getMonth() + 3));
+        }
+      }
+      subscription = {
+        plan,
+        cycle,
+        activatedAt: profile.subscription.activatedAt,
+        expiresAt: expiresAt ? expiresAt.toISOString() : null
+      };
+    }
+    res.json({
+      ...profile.toObject(),
+      subscription
+    });
   } catch (err) {
     console.error('Admin: error fetching profile', err);
     res.status(500).json({ message: 'Server error' });
