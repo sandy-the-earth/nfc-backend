@@ -1,5 +1,13 @@
 const mongoose = require('mongoose');
 
+// Subscription sub-schema
+const subscriptionSchema = new mongoose.Schema({
+  plan: { type: String, default: null },
+  cycle: { type: String, default: null },
+  activatedAt: { type: Date, default: null },
+  code: { type: String, default: null }
+}, { _id: false });
+
 const profileSchema = new mongoose.Schema({
   // Unique code embedded in NFC card
   activationCode: {
@@ -143,12 +151,7 @@ const profileSchema = new mongoose.Schema({
   },
 
   // Subscription info
-  subscription: {
-    plan: { type: String, default: null },
-    cycle: { type: String, default: null },
-    activatedAt: { type: Date, default: null },
-    code: { type: String, default: null }
-  }
+  subscription: { type: subscriptionSchema, default: () => ({}) }
 }, { timestamps: true });
 
 // 🔹 Ensure only one active profile per email
