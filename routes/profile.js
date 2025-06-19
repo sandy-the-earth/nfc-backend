@@ -37,7 +37,34 @@ router.get('/:id', async (req, res) => {
     if (!profile) return res.status(404).json({ message: 'Profile not found' });
     // Always expose a single 'slug' field
     const slug = profile.customSlug || profile.activationCode;
-    res.json({ ...profile.toObject(), slug });
+    // Prepare subscription details with expiresAt
+    let subscription = null;
+    if (profile.subscription && profile.subscription.plan && profile.subscription.activatedAt) {
+      const { plan, cycle, activatedAt, code } = profile.subscription;
+      let expiresAt = null;
+      if (cycle && activatedAt) {
+        const start = new Date(activatedAt);
+        if (cycle === 'monthly') {
+          expiresAt = new Date(start.setMonth(start.getMonth() + 1));
+        } else if (cycle === 'quarterly') {
+          expiresAt = new Date(start.setMonth(start.getMonth() + 3));
+        }
+      }
+      subscription = {
+        plan,
+        cycle,
+        activatedAt: profile.subscription.activatedAt,
+        expiresAt: expiresAt ? expiresAt.toISOString() : null
+      };
+    } else {
+      subscription = {
+        plan: null,
+        cycle: null,
+        activatedAt: null,
+        expiresAt: null
+      };
+    }
+    res.json({ ...profile.toObject(), slug, subscription });
   } catch (err) {
     console.error('Error fetching profile:', err);
     res.status(500).json({ message: 'Server error' });

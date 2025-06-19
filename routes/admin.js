@@ -65,8 +65,43 @@ router.get('/profiles', async (req, res) => {
         .limit(Number(limit)),
       Profile.countDocuments(filter)
     ]);
+
+    // Normalize subscription for each profile
+    const normalizedProfiles = profiles.map(profile => {
+      let subscription = null;
+      if (profile.subscription && profile.subscription.plan && profile.subscription.activatedAt) {
+        const { plan, cycle, activatedAt, code } = profile.subscription;
+        let expiresAt = null;
+        if (cycle && activatedAt) {
+          const start = new Date(activatedAt);
+          if (cycle === 'monthly') {
+            expiresAt = new Date(start.setMonth(start.getMonth() + 1));
+          } else if (cycle === 'quarterly') {
+            expiresAt = new Date(start.setMonth(start.getMonth() + 3));
+          }
+        }
+        subscription = {
+          plan,
+          cycle,
+          activatedAt: profile.subscription.activatedAt,
+          expiresAt: expiresAt ? expiresAt.toISOString() : null
+        };
+      } else {
+        subscription = {
+          plan: null,
+          cycle: null,
+          activatedAt: null,
+          expiresAt: null
+        };
+      }
+      return {
+        ...profile.toObject(),
+        subscription
+      };
+    });
+
     res.json({
-      data: profiles,
+      data: normalizedProfiles,
       meta: { total, page: Number(page), limit: Number(limit) }
     });
   } catch (err) {
@@ -233,6 +268,14 @@ router.get('/profile/:id', async (req, res) => {
         cycle,
         activatedAt: profile.subscription.activatedAt,
         expiresAt: expiresAt ? expiresAt.toISOString() : null
+      };
+    } else {
+      // Always include subscription field, even if not active
+      subscription = {
+        plan: null,
+        cycle: null,
+        activatedAt: null,
+        expiresAt: null
       };
     }
     res.json({
