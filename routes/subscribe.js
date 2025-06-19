@@ -137,4 +137,27 @@ router.post('/add-subscription', async (req, res) => {
   }
 });
 
+// Admin: Ensure all profiles have a subscription field
+router.post('/ensure-subscription-field', async (req, res) => {
+  try {
+    const result = await Profile.updateMany(
+      { subscription: { $exists: false } },
+      {
+        $set: {
+          subscription: {
+            plan: null,
+            cycle: null,
+            activatedAt: null,
+            code: null
+          }
+        }
+      }
+    );
+    res.json({ message: 'Subscription field ensured for all profiles', modifiedCount: result.modifiedCount });
+  } catch (err) {
+    console.error('Ensure subscription field error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router; 
