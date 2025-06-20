@@ -26,7 +26,7 @@ const plans = [
           detail: 'See total views & unique visitors in real time'
         },
         {
-          title: '10 Contact Exchange Credits/mo'
+          title: '20 Contact Exchange Credits/mo'
         },
         {
             title: 'Custom Avatar & Banner Uploads',
