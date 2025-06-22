@@ -164,9 +164,11 @@ router.post('/ensure-subscription-field', async (req, res) => {
 router.post('/migrate-contact-exchanges', async (req, res) => {
   try {
     const profiles = await Profile.find({ contactExchanges: { $type: 'number' } });
+    console.log('Profiles to migrate:', profiles.length);
     let updated = 0;
     for (const profile of profiles) {
       const oldValue = profile.contactExchanges;
+      console.log('Migrating profile:', profile._id, 'Old value:', oldValue);
       profile.contactExchanges = { count: oldValue, lastReset: new Date() };
       await profile.save();
       updated++;
