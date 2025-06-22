@@ -211,7 +211,7 @@ router.get('/:id/insights', async (req, res) => {
     // Initialize arrays/objects if they don't exist
     if (!profile.views) profile.views = [];
     if (!profile.linkClicks) profile.linkClicks = new Map();
-    if (typeof profile.contactExchanges !== 'number') profile.contactExchanges = 0;
+    if (!profile.contactExchanges) profile.contactExchanges = { count: 0, lastReset: new Date() };
     if (typeof profile.contactSaves !== 'number') profile.contactSaves = 0;
 
     // Aggregate views by day
@@ -255,10 +255,25 @@ router.get('/:id/insights', async (req, res) => {
         .sort((a, b) => b.count - a.count);
     }
 
+    // Contact exchange credits logic
+    const getContactLimit = (plan) => {
+      switch (plan) {
+        case 'Novice': return 20;
+        case 'Corporate': return 50;
+        case 'Elite': return Infinity;
+        default: return 0;
+      }
+    };
+    const limit = getContactLimit(profile.subscriptionPlan);
+    const used = profile.contactExchanges.count;
+    const remaining = limit === Infinity ? 'Unlimited' : Math.max(0, limit - used);
+
     res.json({
       totalViews: profile.views.length,
       uniqueVisitors: uniqueSet.size,
-      contactExchanges: profile.contactExchanges,
+      contactExchanges: used,
+      contactExchangeLimit: limit,
+      contactExchangeRemaining: remaining,
       contactSaves: profile.contactSaves,
       viewCountsOverTime,
       linkTapsOverTime,
@@ -274,16 +289,6 @@ router.get('/:id/insights', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
-// Utility to get monthly contact exchange limit
-const getContactLimit = (plan) => {
-  switch (plan) {
-    case 'Novice': return 20;
-    case 'Corporate': return 50;
-    case 'Elite': return Infinity;
-    default: return 0;
-  }
-};
 
 // POST /api/profile/exchange/:profileId - record a contact exchange and enforce plan limits
 router.post('/exchange/:profileId', async (req, res) => {

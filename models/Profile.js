@@ -90,12 +90,11 @@ const profileSchema = new mongoose.Schema({
     enum: ['Novice', 'Corporate', 'Elite'], default: 'Novice'
   },
 
-
-contactExchanges: {
-  count: { type: Number, default: 0 },
-  lastReset: { type: Date, default: Date.now }
-},
-
+  // Contact exchanges (single object version)
+  contactExchanges: {
+    count: { type: Number, default: 0 },
+    lastReset: { type: Date, default: Date.now }
+  },
 
   // 🔹 Optional custom slug for selected users
   customSlug: {
@@ -128,10 +127,6 @@ contactExchanges: {
       userAgent: String
     }
   ],
-  contactExchanges: {
-    type: Number,
-    default: 0
-  },
   contactSaves: {
     type: Number,
     default: 0

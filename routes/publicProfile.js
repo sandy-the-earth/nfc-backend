@@ -86,10 +86,25 @@ router.get('/:activationCode/insights', async (req, res) => {
       }
     }
 
+    // Contact exchange credits logic
+    const getContactLimit = (plan) => {
+      switch (plan) {
+        case 'Novice': return 20;
+        case 'Corporate': return 50;
+        case 'Elite': return Infinity;
+        default: return 0;
+      }
+    };
+    const limit = getContactLimit(profile.subscriptionPlan);
+    const used = profile.contactExchanges?.count || 0;
+    const remaining = limit === Infinity ? 'Unlimited' : Math.max(0, limit - used);
+
     res.json({
       totalViews: profile.views.length,
       uniqueVisitors: uniqueSet.size,
-      contactExchanges: profile.contactExchanges || 0,
+      contactExchanges: used,
+      contactExchangeLimit: limit,
+      contactExchangeRemaining: remaining,
       lastViewedAt: profile.lastViewedAt,
       mostPopularContactMethod,
       createdAt: profile.createdAt,
