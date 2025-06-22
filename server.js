@@ -38,7 +38,7 @@ app.options('*', cors(corsOptions)); // Handle OPTIONS before anything else
 app.use(express.json());
 
 // Route Imports
-const adminRoutes = require('./routes/admin');
+const adminRoutes = require('./routes/admin-bs1978av1123ss2402');
 const authRoutes = require('./routes/auth');
 const loginRoutes = require('./routes/login');
 const profileRoutes = require('./routes/profile');
