@@ -348,4 +348,55 @@ router.get('/profile/:id/insights', async (req, res) => {
   }
 });
 
+// ─── MANUALLY SET SUBSCRIPTION PLAN ─────────────────────────────────────────────
+// PUT /api/admin/profile/:id/subscription
+// Body: { plan: 'Novice' | 'Corporate' | 'Elite', cycle: 'monthly' | 'quarterly', activatedAt?: string }
+router.put('/profile/:id/subscription', async (req, res) => {
+  try {
+    const { plan, cycle, activatedAt } = req.body;
+    if (!['Novice', 'Corporate', 'Elite'].includes(plan)) {
+      return res.status(400).json({ message: 'Invalid plan' });
+    }
+    if (!['monthly', 'quarterly'].includes(cycle)) {
+      return res.status(400).json({ message: 'Invalid cycle' });
+    }
+    const profile = await Profile.findById(req.params.id);
+    if (!profile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+    const activationDate = activatedAt ? new Date(activatedAt) : new Date();
+    profile.subscription = {
+      plan,
+      cycle,
+      activatedAt: activationDate,
+      code: profile.subscription?.code || null
+    };
+    profile.subscriptionPlan = plan; // for compatibility with other logic
+    await profile.save();
+    // Prepare normalized subscription for response
+    let expiresAt = null;
+    if (cycle && activationDate) {
+      const start = new Date(activationDate);
+      if (cycle === 'monthly') {
+        expiresAt = new Date(start.setMonth(start.getMonth() + 1));
+      } else if (cycle === 'quarterly') {
+        expiresAt = new Date(start.setMonth(start.getMonth() + 3));
+      }
+    }
+    const subscription = {
+      plan,
+      cycle,
+      activatedAt: activationDate,
+      expiresAt: expiresAt ? expiresAt.toISOString() : null
+    };
+    res.json({
+      ...profile.toObject(),
+      subscription
+    });
+  } catch (err) {
+    console.error('Admin: error setting subscription', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
