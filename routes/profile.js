@@ -275,4 +275,65 @@ router.get('/:id/insights', async (req, res) => {
   }
 });
 
+// Utility to get monthly contact exchange limit
+const getContactLimit = (plan) => {
+  switch (plan) {
+    case 'Novice': return 20;
+    case 'Corporate': return 50;
+    case 'Elite': return Infinity;
+    default: return 0;
+  }
+};
+
+// POST /api/profile/exchange/:profileId - record a contact exchange and enforce plan limits
+router.post('/exchange/:profileId', async (req, res) => {
+  try {
+    const profile = await Profile.findById(req.params.profileId);
+    if (!profile) return res.status(404).json({ message: 'Profile not found' });
+
+    const now = new Date();
+    const lastReset = new Date(profile.contactExchanges.lastReset);
+    const isNewMonth = now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear();
+    if (isNewMonth) {
+      profile.contactExchanges.count = 0;
+      profile.contactExchanges.lastReset = now;
+    }
+
+    const limit = getContactLimit(profile.subscriptionPlan);
+    if (profile.contactExchanges.count >= limit) {
+      return res.status(403).json({ message: 'Monthly contact exchange limit reached' });
+    }
+
+    // [Insert logic to save contact request here if any, e.g. to database or email]
+    profile.contactExchanges.count += 1;
+    await profile.save();
+
+    res.status(200).json({ message: 'Contact exchange recorded successfully' });
+  } catch (error) {
+    console.error('Contact exchange error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Admin: Migrate old contactExchanges number fields to new object format
+router.post('/migrate-contact-exchanges', async (req, res) => {
+  try {
+    const profiles = await Profile.find({ 'contactExchanges': { $type: 'number' } });
+    let updated = 0;
+    for (const profile of profiles) {
+      const oldValue = profile.contactExchanges;
+      profile.contactExchanges = {
+        count: oldValue,
+        lastReset: new Date()
+      };
+      await profile.save();
+      updated++;
+    }
+    res.json({ message: 'Migration complete', updated });
+  } catch (err) {
+    console.error('Migration error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

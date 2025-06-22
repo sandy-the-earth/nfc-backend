@@ -84,6 +84,17 @@ const profileSchema = new mongoose.Schema({
     twitter: { type: String, default: '' }
   },
 
+  // Add inside the ProfileSchema definition
+  subscriptionPlan: {
+    type: String, 
+    enum: ['Novice', 'Corporate', 'Elite'], default: 'Novice'
+  },
+
+  contactExchanges: {
+    count: { type: Number, default: 0 },
+    lastReset: { type: Date, default: Date.now }
+  },
+
   // 🔹 Optional custom slug for selected users
   customSlug: {
     type: String,
@@ -115,10 +126,6 @@ const profileSchema = new mongoose.Schema({
       userAgent: String
     }
   ],
-  contactExchanges: {
-    type: Number,
-    default: 0
-  },
   contactSaves: {
     type: Number,
     default: 0
