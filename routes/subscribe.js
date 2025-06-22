@@ -160,4 +160,22 @@ router.post('/ensure-subscription-field', async (req, res) => {
   }
 });
 
+// Add this to routes/subscribe.js
+router.post('/migrate-contact-exchanges', async (req, res) => {
+  try {
+    const profiles = await Profile.find({ contactExchanges: { $type: 'number' } });
+    let updated = 0;
+    for (const profile of profiles) {
+      const oldValue = profile.contactExchanges;
+      profile.contactExchanges = { count: oldValue, lastReset: new Date() };
+      await profile.save();
+      updated++;
+    }
+    res.json({ message: 'Migration complete', updated });
+  } catch (err) {
+    console.error('Migration error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router; 
