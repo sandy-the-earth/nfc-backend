@@ -176,17 +176,17 @@ router.post('/:activationCode/contact-download', async (req, res) => {
     }
 
     // Initialize contactExchanges if it doesn't exist
-    if (typeof profile.contactExchanges !== 'number') {
-      profile.contactExchanges = 0;
+    if (!profile.contactExchanges) {
+      profile.contactExchanges = { count: 0, lastReset: new Date() };
     }
 
     // Increment contact downloads
-    profile.contactExchanges += 1;
+    profile.contactExchanges.count += 1;
     await profile.save();
 
     res.json({ 
       message: 'Contact download recorded', 
-      totalDownloads: profile.contactExchanges 
+      totalDownloads: profile.contactExchanges.count 
     });
   } catch (err) {
     console.error('Error recording contact download:', err);
