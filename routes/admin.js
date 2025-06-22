@@ -399,4 +399,31 @@ router.put('/profile/:id/subscription', async (req, res) => {
   }
 });
 
+// PUT /api/admin-bs1978av1123ss2402/profile/:id/subscription (simple plan update only)
+router.put('/profile/:id/subscription', async (req, res) => {
+  try {
+    const profileId = req.params.id;
+    const { plan } = req.body;
+
+    if (!['Novice', 'Corporate', 'Elite'].includes(plan)) {
+      return res.status(400).json({ message: 'Invalid plan' });
+    }
+
+    const updatedProfile = await Profile.findByIdAndUpdate(
+      profileId,
+      { subscriptionPlan: plan },
+      { new: true }
+    );
+
+    if (!updatedProfile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+
+    res.status(200).json({ message: 'Subscription updated', profile: updatedProfile });
+  } catch (err) {
+    console.error('Error updating subscription plan:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
