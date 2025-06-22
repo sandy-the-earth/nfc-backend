@@ -315,25 +315,4 @@ router.post('/exchange/:profileId', async (req, res) => {
   }
 });
 
-// Admin: Migrate old contactExchanges number fields to new object format
-router.post('/migrate-contact-exchanges', async (req, res) => {
-  try {
-    const profiles = await Profile.find({ 'contactExchanges': { $type: 'number' } });
-    let updated = 0;
-    for (const profile of profiles) {
-      const oldValue = profile.contactExchanges;
-      profile.contactExchanges = {
-        count: oldValue,
-        lastReset: new Date()
-      };
-      await profile.save();
-      updated++;
-    }
-    res.json({ message: 'Migration complete', updated });
-  } catch (err) {
-    console.error('Migration error:', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
 module.exports = router;
