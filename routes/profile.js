@@ -181,19 +181,36 @@ router.patch('/:id/exclusive-badge', async (req, res) => {
   }
 });
 
-// PATCH /api/profile/:id/theme
-router.patch('/:id/theme', async (req, res) => {
-  const { theme } = req.body;
-  if (!['light', 'dark'].includes(theme)) {
-    return res.status(400).json({ message: 'Invalid theme' });
+// PATCH /api/profile/:profileId/card-theme
+router.patch('/:profileId/card-theme', async (req, res) => {
+  const { cardTheme } = req.body;
+  try {
+    const profile = await Profile.findByIdAndUpdate(
+      req.params.profileId,
+      { cardTheme },
+      { new: true }
+    );
+    if (!profile) return res.status(404).json({ error: 'Profile not found' });
+    res.json(profile);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update card theme' });
   }
-  const profile = await Profile.findByIdAndUpdate(
-    req.params.id,
-    { theme },
-    { new: true }
-  );
-  if (!profile) return res.status(404).json({ message: 'Profile not found' });
-  res.json({ message: 'Theme updated', profile });
+});
+
+// PATCH /api/profile/:profileId/theme
+router.patch('/:profileId/theme', async (req, res) => {
+  const { theme } = req.body;
+  try {
+    const profile = await Profile.findByIdAndUpdate(
+      req.params.profileId,
+      { theme },
+      { new: true }
+    );
+    if (!profile) return res.status(404).json({ error: 'Profile not found' });
+    res.json(profile);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update theme' });
+  }
 });
 
 // GET /api/profile/:id/insights (dashboard only, for owner)
@@ -345,26 +362,6 @@ router.post('/exchange/:profileId', async (req, res) => {
     res.status(200).json({ message: 'Contact exchange recorded successfully' });
   } catch (error) {
     console.error('Contact exchange error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// PATCH /api/profile/:id/card-theme
-router.patch('/:id/card-theme', async (req, res) => {
-  const { cardTheme } = req.body;
-  if (!cardTheme || typeof cardTheme !== 'string') {
-    return res.status(400).json({ message: 'Invalid cardTheme' });
-  }
-  try {
-    const profile = await Profile.findByIdAndUpdate(
-      req.params.id,
-      { cardTheme },
-      { new: true }
-    );
-    if (!profile) return res.status(404).json({ message: 'Profile not found' });
-    res.json({ message: 'Card theme updated', profile });
-  } catch (err) {
-    console.error('Card theme update failed:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
