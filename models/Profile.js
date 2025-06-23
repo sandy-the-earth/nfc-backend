@@ -159,7 +159,13 @@ const profileSchema = new mongoose.Schema({
   },
 
   // Subscription info
-  subscription: { type: subscriptionSchema, default: () => ({}) }
+  subscription: { type: subscriptionSchema, default: () => ({}) },
+
+  // Contact downloads (separate from exchanges)
+  contactDownloads: {
+    type: Number,
+    default: 0
+  }
 }, { timestamps: true });
 
 // 🔹 Ensure only one active profile per email

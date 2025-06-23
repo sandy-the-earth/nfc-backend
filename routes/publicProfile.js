@@ -175,18 +175,14 @@ router.post('/:activationCode/contact-download', async (req, res) => {
       return res.status(404).json({ message: 'Profile not found' });
     }
 
-    // Initialize contactExchanges if it doesn't exist
-    if (!profile.contactExchanges) {
-      profile.contactExchanges = { count: 0, lastReset: new Date() };
-    }
-
-    // Increment contact downloads
-    profile.contactExchanges.count += 1;
+    // Initialize contactDownloads if it doesn't exist
+    if (typeof profile.contactDownloads !== 'number') profile.contactDownloads = 0;
+    profile.contactDownloads += 1;
     await profile.save();
 
     res.json({ 
       message: 'Contact download recorded', 
-      totalDownloads: profile.contactExchanges.count 
+      totalDownloads: profile.contactDownloads 
     });
   } catch (err) {
     console.error('Error recording contact download:', err);
