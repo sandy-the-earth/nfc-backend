@@ -348,80 +348,66 @@ router.get('/profile/:id/insights', async (req, res) => {
   }
 });
 
-// ─── MANUALLY SET SUBSCRIPTION PLAN ─────────────────────────────────────────────
-// PUT /api/admin/profile/:id/subscription
-// Body: { plan: 'Novice' | 'Corporate' | 'Elite', cycle: 'monthly' | 'quarterly', activatedAt?: string }
+// Unified: PUT /api/admin/profile/:id/subscription
 router.put('/profile/:id/subscription', async (req, res) => {
   try {
     const { plan, cycle, activatedAt } = req.body;
+
     if (!['Novice', 'Corporate', 'Elite'].includes(plan)) {
       return res.status(400).json({ message: 'Invalid plan' });
     }
-    if (!['monthly', 'quarterly'].includes(cycle)) {
-      return res.status(400).json({ message: 'Invalid cycle' });
-    }
+
     const profile = await Profile.findById(req.params.id);
     if (!profile) {
       return res.status(404).json({ message: 'Profile not found' });
     }
-    const activationDate = activatedAt ? new Date(activatedAt) : new Date();
-    profile.subscription = {
-      plan,
-      cycle,
-      activatedAt: activationDate,
-      code: profile.subscription?.code || null
-    };
-    profile.subscriptionPlan = plan; // for compatibility with other logic
-    await profile.save();
-    // Prepare normalized subscription for response
-    let expiresAt = null;
-    if (cycle && activationDate) {
-      const start = new Date(activationDate);
-      if (cycle === 'monthly') {
-        expiresAt = new Date(start.setMonth(start.getMonth() + 1));
-      } else if (cycle === 'quarterly') {
-        expiresAt = new Date(start.setMonth(start.getMonth() + 3));
+
+    // Always update subscriptionPlan
+    profile.subscriptionPlan = plan;
+
+    // Optionally update full subscription metadata
+    if (cycle) {
+      if (!['monthly', 'quarterly'].includes(cycle)) {
+        return res.status(400).json({ message: 'Invalid cycle' });
       }
+
+      const activationDate = activatedAt ? new Date(activatedAt) : new Date();
+      profile.subscription = {
+        plan,
+        cycle,
+        activatedAt: activationDate,
+        code: profile.subscription?.code || null
+      };
     }
-    const subscription = {
-      plan,
-      cycle,
-      activatedAt: activationDate,
-      expiresAt: expiresAt ? expiresAt.toISOString() : null
-    };
-    res.json({
+
+    await profile.save();
+
+    // Compose normalized response
+    let responseSubscription = null;
+    if (profile.subscription?.plan && profile.subscription?.activatedAt) {
+      const { cycle, activatedAt } = profile.subscription;
+      let expiresAt = null;
+      if (cycle && activatedAt) {
+        const start = new Date(activatedAt);
+        expiresAt = cycle === 'monthly'
+          ? new Date(start.setMonth(start.getMonth() + 1))
+          : new Date(start.setMonth(start.getMonth() + 3));
+      }
+      responseSubscription = {
+        plan,
+        cycle: profile.subscription.cycle,
+        activatedAt: profile.subscription.activatedAt,
+        expiresAt: expiresAt ? expiresAt.toISOString() : null
+      };
+    }
+
+    res.status(200).json({
       ...profile.toObject(),
-      subscription
+      subscription: responseSubscription
     });
+
   } catch (err) {
-    console.error('Admin: error setting subscription', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// PUT /api/admin-bs1978av1123ss2402/profile/:id/subscription (simple plan update only)
-router.put('/profile/:id/subscription', async (req, res) => {
-  try {
-    const profileId = req.params.id;
-    const { plan } = req.body;
-
-    if (!['Novice', 'Corporate', 'Elite'].includes(plan)) {
-      return res.status(400).json({ message: 'Invalid plan' });
-    }
-
-    const updatedProfile = await Profile.findByIdAndUpdate(
-      profileId,
-      { subscriptionPlan: plan },
-      { new: true }
-    );
-
-    if (!updatedProfile) {
-      return res.status(404).json({ message: 'Profile not found' });
-    }
-
-    res.status(200).json({ message: 'Subscription updated', profile: updatedProfile });
-  } catch (err) {
-    console.error('Error updating subscription plan:', err);
+    console.error('Admin: error updating subscription plan', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
