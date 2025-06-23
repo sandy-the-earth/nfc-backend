@@ -105,6 +105,7 @@ router.get('/:activationCode/insights', async (req, res) => {
       contactExchanges: used,
       contactExchangeLimit: limit,
       contactExchangeRemaining: remaining,
+      contactDownloads: profile.contactDownloads || 0,
       lastViewedAt: profile.lastViewedAt,
       mostPopularContactMethod,
       createdAt: profile.createdAt,
