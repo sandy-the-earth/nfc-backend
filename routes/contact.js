@@ -19,10 +19,11 @@ router.post('/:activationCode', async (req, res) => {
       return res.status(404).json({ message: 'Profile not found or missing email' });
     }
 
-    // Increment contactExchanges for insights
-    if (profile.contactExchanges == null) profile.contactExchanges = 0;
-    profile.contactExchanges += 1;
-    console.log(`Updated contactExchanges: ${profile.contactExchanges}`); // Log update
+    // Increment contactExchanges for insights (ensure object format)
+    if (!profile.contactExchanges || typeof profile.contactExchanges !== 'object') {
+      profile.contactExchanges = { count: 0, lastReset: new Date() };
+    }
+    profile.contactExchanges.count += 1;
     await profile.save();
 
     const transporter = nodemailer.createTransport({
@@ -42,7 +43,7 @@ router.post('/:activationCode', async (req, res) => {
       bcc: process.env.MODERATOR_EMAIL,
       subject: `no-reply - Comma Connection Request from ${name}`,
       text: `
-    📬 You’ve received a new message via your commaCard profile!
+    📬 You've received a new message via your commaCard profile!
     
     ━━━━━━━━━━━━━━━━━━━━━━━
     
