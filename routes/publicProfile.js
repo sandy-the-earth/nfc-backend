@@ -52,7 +52,8 @@ router.get('/:activationCode', async (req, res) => {
       createdAt: profile.createdAt,
       exclusiveBadge: profile.exclusiveBadge || null,
       industry: profile.industry || '',
-      theme: profile.theme || 'light'
+      theme: profile.theme || 'light',
+      cardTheme: profile.cardTheme || 'default'
     });
   } catch (err) {
     console.error('❌ Public profile fetch error:', err);
