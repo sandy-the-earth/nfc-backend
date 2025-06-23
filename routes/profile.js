@@ -181,36 +181,19 @@ router.patch('/:id/exclusive-badge', async (req, res) => {
   }
 });
 
-// PATCH /api/profile/:profileId/card-theme
-router.patch('/:profileId/card-theme', async (req, res) => {
-  const { cardTheme } = req.body;
-  try {
-    const profile = await Profile.findByIdAndUpdate(
-      req.params.profileId,
-      { cardTheme },
-      { new: true }
-    );
-    if (!profile) return res.status(404).json({ error: 'Profile not found' });
-    res.json(profile);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update card theme' });
-  }
-});
-
-// PATCH /api/profile/:profileId/theme
-router.patch('/:profileId/theme', async (req, res) => {
+// PATCH /api/profile/:id/theme
+router.patch('/:id/theme', async (req, res) => {
   const { theme } = req.body;
-  try {
-    const profile = await Profile.findByIdAndUpdate(
-      req.params.profileId,
-      { theme },
-      { new: true }
-    );
-    if (!profile) return res.status(404).json({ error: 'Profile not found' });
-    res.json(profile);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update theme' });
+  if (!['light', 'dark'].includes(theme)) {
+    return res.status(400).json({ message: 'Invalid theme' });
   }
+  const profile = await Profile.findByIdAndUpdate(
+    req.params.id,
+    { theme },
+    { new: true }
+  );
+  if (!profile) return res.status(404).json({ message: 'Profile not found' });
+  res.json({ message: 'Theme updated', theme: profile.theme });
 });
 
 // GET /api/profile/:id/insights (dashboard only, for owner)
