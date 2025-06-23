@@ -349,4 +349,24 @@ router.post('/exchange/:profileId', async (req, res) => {
   }
 });
 
+// PATCH /api/profile/:id/card-theme
+router.patch('/:id/card-theme', async (req, res) => {
+  const { cardTheme } = req.body;
+  if (!cardTheme || typeof cardTheme !== 'string') {
+    return res.status(400).json({ message: 'Invalid cardTheme' });
+  }
+  try {
+    const profile = await Profile.findByIdAndUpdate(
+      req.params.id,
+      { cardTheme },
+      { new: true }
+    );
+    if (!profile) return res.status(404).json({ message: 'Profile not found' });
+    res.json({ message: 'Card theme updated', cardTheme: profile.cardTheme });
+  } catch (err) {
+    console.error('Card theme update failed:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

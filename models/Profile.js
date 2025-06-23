@@ -158,6 +158,12 @@ const profileSchema = new mongoose.Schema({
     default: 'light'
   },
 
+  // Add cardTheme field to the profile schema
+  cardTheme: {
+    type: String,
+    default: 'default'
+  },
+
   // Subscription info
   subscription: { type: subscriptionSchema, default: () => ({}) }
 }, { timestamps: true });
