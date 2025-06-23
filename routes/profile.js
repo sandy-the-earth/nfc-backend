@@ -268,10 +268,10 @@ router.get('/:id/insights', async (req, res) => {
     const used = profile.contactExchanges.count;
     const remaining = limit === Infinity ? 'Unlimited' : Math.max(0, limit - used);
 
-    // Prepare subscription details with expiresAt
+    // Prepare normalized subscription object
     let subscription = null;
     if (profile.subscription && profile.subscription.plan && profile.subscription.activatedAt) {
-      const { plan, cycle, activatedAt, code } = profile.subscription;
+      const { plan, cycle, activatedAt } = profile.subscription;
       let expiresAt = null;
       if (cycle && activatedAt) {
         const start = new Date(activatedAt);
