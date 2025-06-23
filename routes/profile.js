@@ -193,7 +193,7 @@ router.patch('/:id/theme', async (req, res) => {
     { new: true }
   );
   if (!profile) return res.status(404).json({ message: 'Profile not found' });
-  res.json({ message: 'Theme updated', theme: profile.theme });
+  res.json({ message: 'Theme updated', profile });
 });
 
 // GET /api/profile/:id/insights (dashboard only, for owner)
@@ -362,7 +362,7 @@ router.patch('/:id/card-theme', async (req, res) => {
       { new: true }
     );
     if (!profile) return res.status(404).json({ message: 'Profile not found' });
-    res.json({ message: 'Card theme updated', cardTheme: profile.cardTheme });
+    res.json({ message: 'Card theme updated', profile });
   } catch (err) {
     console.error('Card theme update failed:', err);
     res.status(500).json({ message: 'Server error' });
