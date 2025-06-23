@@ -33,7 +33,7 @@ router.get('/:activationCode', async (req, res) => {
     const slug = profile.customSlug || profile.activationCode;
 
     res.json({
-      slug,
+      slug: profile.customSlug || profile.activationCode || '',
       bannerUrl: profile.bannerUrl || '',
       avatarUrl: profile.avatarUrl || '',
       name: profile.name || '',
@@ -49,14 +49,14 @@ router.get('/:activationCode', async (req, res) => {
         linkedin: profile.socialLinks?.linkedin || '',
         twitter: profile.socialLinks?.twitter || ''
       },
-      createdAt: profile.createdAt,
+      createdAt: profile.createdAt || null,
       exclusiveBadge: profile.exclusiveBadge || null,
       industry: profile.industry || '',
       theme: profile.theme || 'light',
       cardTheme: profile.cardTheme || 'default'
     });
   } catch (err) {
-    console.error('❌ Public profile fetch error:', err);
+    console.error('❌ Public profile fetch error:', err, 'activationCode:', req.params.activationCode);
     res.status(500).json({ message: 'Server error' });
   }
 });
