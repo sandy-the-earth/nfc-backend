@@ -268,6 +268,34 @@ router.get('/:id/insights', async (req, res) => {
     const used = profile.contactExchanges.count;
     const remaining = limit === Infinity ? 'Unlimited' : Math.max(0, limit - used);
 
+    // Prepare subscription details with expiresAt
+    let subscription = null;
+    if (profile.subscription && profile.subscription.plan && profile.subscription.activatedAt) {
+      const { plan, cycle, activatedAt, code } = profile.subscription;
+      let expiresAt = null;
+      if (cycle && activatedAt) {
+        const start = new Date(activatedAt);
+        if (cycle === 'monthly') {
+          expiresAt = new Date(start.setMonth(start.getMonth() + 1));
+        } else if (cycle === 'quarterly') {
+          expiresAt = new Date(start.setMonth(start.getMonth() + 3));
+        }
+      }
+      subscription = {
+        plan,
+        cycle,
+        activatedAt: profile.subscription.activatedAt,
+        expiresAt: expiresAt ? expiresAt.toISOString() : null
+      };
+    } else {
+      subscription = {
+        plan: null,
+        cycle: null,
+        activatedAt: null,
+        expiresAt: null
+      };
+    }
+
     res.json({
       totalViews: profile.views.length,
       uniqueVisitors: uniqueSet.size,
@@ -282,7 +310,8 @@ router.get('/:id/insights', async (req, res) => {
       totalLinkTaps,
       topLink,
       createdAt: profile.createdAt,
-      updatedAt: profile.updatedAt
+      updatedAt: profile.updatedAt,
+      subscription
     });
   } catch (err) {
     console.error('Dashboard insights error:', err);
