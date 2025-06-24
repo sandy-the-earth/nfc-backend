@@ -303,6 +303,7 @@ router.get('/:id/insights', async (req, res) => {
       contactExchangeLimit: limit,
       contactExchangeRemaining: remaining,
       contactSaves: profile.contactSaves,
+      contactDownloads: profile.contactDownloads || 0,
       viewCountsOverTime,
       linkTapsOverTime,
       lastViewedAt: profile.lastViewedAt,
