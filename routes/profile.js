@@ -234,26 +234,24 @@ router.get('/:id/insights', async (req, res) => {
     let maxTaps = 0;
     let linkTapsOverTime = [];
     
-    if (profile.linkClicks) {
-      // Convert Map to Object if it's a Map
-      const linkClicksObj = profile.linkClicks instanceof Map 
-        ? Object.fromEntries(profile.linkClicks)
-        : profile.linkClicks;
+    // Ensure linkClicks is an object
+    const linkClicksObj = profile.linkClicks instanceof Map
+      ? Object.fromEntries(profile.linkClicks)
+      : profile.linkClicks || {};
 
-      // Calculate total taps and find top link
-      for (const [link, count] of Object.entries(linkClicksObj)) {
-        totalLinkTaps += count;
-        if (count > maxTaps) {
-          maxTaps = count;
-          topLink = link;
-        }
+    // Calculate total taps and find top link
+    for (const [link, count] of Object.entries(linkClicksObj)) {
+      totalLinkTaps += count;
+      if (count > maxTaps) {
+        maxTaps = count;
+        topLink = link;
       }
-
-      // Create link taps over time data
-      linkTapsOverTime = Object.entries(linkClicksObj)
-        .map(([link, count]) => ({ link, count }))
-        .sort((a, b) => b.count - a.count);
     }
+
+    // Create link taps over time data
+    linkTapsOverTime = Object.entries(linkClicksObj)
+      .map(([link, count]) => ({ link, count }))
+      .sort((a, b) => b.count - a.count);
 
     // Contact exchange credits logic
     const getContactLimit = (plan) => {
