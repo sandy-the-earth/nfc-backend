@@ -76,6 +76,7 @@ router.get('/:activationCode/insights', async (req, res) => {
 
     // Calculate total link taps and top link
     const linkClicksObj = profile.linkClicks || {};
+    console.log('[INSIGHTS] Aggregating linkClicks:', linkClicksObj); // Debug log
     let totalLinkTaps = 0;
     let topLink = null;
     let maxTaps = 0;
@@ -149,7 +150,9 @@ router.post('/:activationCode/link-tap', async (req, res) => {
     if (!profile.linkClicks || typeof profile.linkClicks !== 'object' || profile.linkClicks instanceof Map) {
       profile.linkClicks = {};
     }
+    console.log('[LINK-TAP] Before tap:', profile.linkClicks); // Debug log
     profile.linkClicks[link] = (profile.linkClicks[link] || 0) + 1;
+    console.log('[LINK-TAP] After tap:', profile.linkClicks); // Debug log
     await profile.save();
 
     res.json({ 
