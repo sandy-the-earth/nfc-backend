@@ -147,13 +147,18 @@ router.post('/:activationCode/link-tap', async (req, res) => {
     }
 
     // Ensure linkClicks is a plain object
-    if (!profile.linkClicks || typeof profile.linkClicks !== 'object' || profile.linkClicks instanceof Map) {
+    if (!profile.linkClicks || typeof profile.linkClicks !== 'object' || Array.isArray(profile.linkClicks)) {
       profile.linkClicks = {};
     }
     console.log('[LINK-TAP] Before tap:', profile.linkClicks); // Debug log
     profile.linkClicks[link] = (profile.linkClicks[link] || 0) + 1;
     console.log('[LINK-TAP] After tap:', profile.linkClicks); // Debug log
-    await profile.save();
+    try {
+      await profile.save();
+    } catch (e) {
+      console.error('Error saving profile after link tap:', e);
+      return res.status(500).json({ message: 'Failed to save link tap' });
+    }
 
     res.json({ 
       message: 'Link tap recorded', 
