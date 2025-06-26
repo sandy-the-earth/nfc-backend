@@ -80,11 +80,17 @@ router.get('/:activationCode/insights', async (req, res) => {
     let topLink = null;
     let maxTaps = 0;
     for (const [link, count] of Object.entries(linkClicksObj)) {
-      totalLinkTaps += count;
-      if (count > maxTaps) {
-        maxTaps = count;
-        topLink = link;
+      if (typeof count === 'number' && isFinite(count)) {
+        totalLinkTaps += count;
+        if (count > maxTaps) {
+          maxTaps = count;
+          topLink = link;
+        }
       }
+    }
+    // Ensure totalLinkTaps is a number
+    if (typeof totalLinkTaps !== 'number' || isNaN(totalLinkTaps) || !isFinite(totalLinkTaps)) {
+      totalLinkTaps = 0;
     }
 
     // Contact exchange credits logic

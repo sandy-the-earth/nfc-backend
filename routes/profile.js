@@ -235,9 +235,7 @@ router.get('/:id/insights', async (req, res) => {
     let linkTapsOverTime = [];
     
     // Ensure linkClicks is an object
-    const linkClicksObj = profile.linkClicks instanceof Map
-      ? Object.fromEntries(profile.linkClicks)
-      : profile.linkClicks || {};
+    const linkClicksObj = profile.linkClicks || {};
 
     // Calculate total taps and find top link
     for (const [link, count] of Object.entries(linkClicksObj)) {

@@ -136,8 +136,7 @@ const profileSchema = new mongoose.Schema({
     default: null
   },
   linkClicks: {
-    type: Map,
-    of: Number,
+    type: Object,
     default: {}
   },
   insightsEnabled: {
