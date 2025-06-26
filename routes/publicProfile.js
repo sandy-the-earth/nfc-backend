@@ -74,15 +74,16 @@ router.get('/:activationCode/insights', async (req, res) => {
     // Calculate unique visitors (by ip+userAgent)
     const uniqueSet = new Set(profile.views.map(v => v.ip + '|' + v.userAgent));
 
-    // Find most popular contact method
-    let mostPopularContactMethod = null;
-    if (profile.linkClicks && Object.keys(profile.linkClicks).length > 0) {
-      let max = 0;
-      for (const [method, count] of Object.entries(profile.linkClicks)) {
-        if (count > max) {
-          max = count;
-          mostPopularContactMethod = method;
-        }
+    // Calculate total link taps and top link
+    const linkClicksObj = profile.linkClicks || {};
+    let totalLinkTaps = 0;
+    let topLink = null;
+    let maxTaps = 0;
+    for (const [link, count] of Object.entries(linkClicksObj)) {
+      totalLinkTaps += count;
+      if (count > maxTaps) {
+        maxTaps = count;
+        topLink = link;
       }
     }
 
@@ -107,7 +108,9 @@ router.get('/:activationCode/insights', async (req, res) => {
       contactExchangeRemaining: remaining,
       contactDownloads: profile.contactDownloads || 0,
       lastViewedAt: profile.lastViewedAt,
-      mostPopularContactMethod,
+      totalLinkTaps,
+      topLink,
+      linkClicks: linkClicksObj,
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt
     });
@@ -136,26 +139,18 @@ router.post('/:activationCode/link-tap', async (req, res) => {
       return res.status(404).json({ message: 'Profile not found' });
     }
 
-    // Initialize linkClicks if it doesn't exist
-    if (!profile.linkClicks) {
-      profile.linkClicks = new Map();
+    // Ensure linkClicks is a plain object
+    if (!profile.linkClicks || typeof profile.linkClicks !== 'object' || profile.linkClicks instanceof Map) {
+      profile.linkClicks = {};
     }
-
-    // Ensure linkClicks is a Map
-    if (!(profile.linkClicks instanceof Map)) {
-      profile.linkClicks = new Map(Object.entries(profile.linkClicks));
-    }
-
-    // Increment link click count
-    const currentCount = profile.linkClicks.get(link) || 0;
-    profile.linkClicks.set(link, currentCount + 1);
+    profile.linkClicks[link] = (profile.linkClicks[link] || 0) + 1;
     await profile.save();
 
     res.json({ 
       message: 'Link tap recorded', 
       link, 
-      totalTaps: currentCount + 1,
-      allTaps: Object.fromEntries(profile.linkClicks)
+      totalTaps: profile.linkClicks[link],
+      allTaps: profile.linkClicks
     });
   } catch (err) {
     console.error('Error recording link tap:', err);

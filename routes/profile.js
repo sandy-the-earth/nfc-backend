@@ -305,7 +305,6 @@ router.get('/:id/insights', async (req, res) => {
       viewCountsOverTime,
       linkTapsOverTime,
       lastViewedAt: profile.lastViewedAt,
-      mostPopularContactMethod: topLink,
       totalLinkTaps,
       topLink,
       createdAt: profile.createdAt,
