@@ -14,34 +14,9 @@ function loadProfileNoTracking(req, res, next) {
       return res.status(404).json({ message: 'Profile not found' });
     }
     
-    // Always expose a single 'slug' field
-    const slug = profile.customSlug || profile.activationCode;
-
-    // Create the full profile object
-    const fullProfile = {
-      slug,
-      bannerUrl: profile.bannerUrl || '',
-      avatarUrl: profile.avatarUrl || '',
-      name: profile.name || '',
-      title: profile.title || '',
-      subtitle: profile.subtitle || '',
-      location: profile.location || '',
-      tags: Array.isArray(profile.tags) ? profile.tags : [],
-      phone: profile.phone || '',
-      website: profile.website || '',
-      email: profile.ownerEmail || '',
-      socialLinks: {
-        instagram: profile.socialLinks?.instagram || '',
-        linkedin: profile.socialLinks?.linkedin || '',
-        twitter: profile.socialLinks?.twitter || ''
-      },
-      createdAt: profile.createdAt,
-      exclusiveBadge: profile.exclusiveBadge || null,
-      industry: profile.industry || '',
-      theme: profile.theme || 'light',
-      subscriptionPlan: profile.subscriptionPlan || 'Novice'
-    };
-    
+    // Use all fields from the profile
+    const fullProfile = profile.toObject();
+    fullProfile.slug = profile.customSlug || profile.activationCode;
     res.locals.profile = fullProfile;
     next();
   })

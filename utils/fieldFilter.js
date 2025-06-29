@@ -6,7 +6,7 @@ const PLAN_FIELDS = {
 };
 
 // Fields that should always be included regardless of subscription plan
-const COMMON_FIELDS = ['slug', 'bannerUrl', 'avatarUrl', 'theme', 'createdAt', 'exclusiveBadge', 'email'];
+const COMMON_FIELDS = ['slug', 'bannerUrl', 'avatarUrl', 'theme', 'createdAt', 'email'];
 
 function filterByPlan(profileObj) {
   const plan = profileObj.subscriptionPlan || 'Novice';
