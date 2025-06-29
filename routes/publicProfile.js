@@ -1,63 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const Profile = require('../models/Profile');
+const loadProfile = require('../middleware/loadProfile');
+const planGate = require('../middleware/planGate');
 
 // 🔹 GET public profile by activationCode OR customSlug
-router.get('/:activationCode', async (req, res) => {
-  try {
-    const profile = await Profile.findOne({
-      $or: [
-        { activationCode: req.params.activationCode },
-        { customSlug: req.params.activationCode }
-      ]
-    });
-
-    if (!profile) {
-      return res.status(404).json({ message: 'Profile not found' });
-    }
-
-    // Track view (increment views, update lastViewedAt)
-    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress || '';
-    const userAgent = req.headers['user-agent'] || '';
-    
-    // Initialize views array if it doesn't exist
-    if (!profile.views) {
-      profile.views = [];
-    }
-    
-    profile.views.push({ date: new Date(), ip, userAgent });
-    profile.lastViewedAt = new Date();
-    await profile.save();
-
-    // Always expose a single 'slug' field
-    const slug = profile.customSlug || profile.activationCode;
-
-    res.json({
-      slug,
-      bannerUrl: profile.bannerUrl || '',
-      avatarUrl: profile.avatarUrl || '',
-      name: profile.name || '',
-      title: profile.title || '',
-      subtitle: profile.subtitle || '',
-      location: profile.location || '',
-      tags: Array.isArray(profile.tags) ? profile.tags : [],
-      phone: profile.phone || '',
-      website: profile.website || '',
-      email: profile.ownerEmail || '',
-      socialLinks: {
-        instagram: profile.socialLinks?.instagram || '',
-        linkedin: profile.socialLinks?.linkedin || '',
-        twitter: profile.socialLinks?.twitter || ''
-      },
-      createdAt: profile.createdAt,
-      exclusiveBadge: profile.exclusiveBadge || null,
-      industry: profile.industry || '',
-      theme: profile.theme || 'light'
-    });
-  } catch (err) {
-    console.error('❌ Public profile fetch error:', err);
-    res.status(500).json({ message: 'Server error' });
-  }
+router.get('/:activationCode', loadProfile, planGate, (req, res) => {
+  res.json(res.locals.filteredProfile);
 });
 
 // GET /api/public/:activationCode/insights

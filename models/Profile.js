@@ -135,6 +135,7 @@ const profileSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  // Link tap analytics: stores { [link]: count }
   linkClicks: {
     type: Object,
     default: {}
