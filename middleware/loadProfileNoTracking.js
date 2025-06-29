@@ -17,6 +17,7 @@ function loadProfileNoTracking(req, res, next) {
     // Use all fields from the profile
     const fullProfile = profile.toObject();
     fullProfile.slug = profile.customSlug || profile.activationCode;
+    fullProfile.email = profile.ownerEmail || '';
     res.locals.profile = fullProfile;
     next();
   })

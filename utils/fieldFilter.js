@@ -22,6 +22,7 @@ function filterByPlan(profileObj) {
   
   // If Elite plan, include all fields
   if (!allowed) {
+    console.log('ELITE PROFILE KEYS:', Object.keys(profileObj));
     return profileObj;
   }
   
