@@ -260,7 +260,9 @@ router.get('/:id/insights', async (req, res) => {
         default: return 0;
       }
     };
-    const limit = getContactLimit(profile.subscriptionPlan);
+    // Use plan from profile.subscription, not profile.subscriptionPlan
+    const plan = profile.subscription && profile.subscription.plan ? profile.subscription.plan : 'Novice';
+    const limit = getContactLimit(plan);
     const used = profile.contactExchanges.count;
     const remaining = limit === Infinity ? 'Unlimited' : Math.max(0, limit - used);
 
@@ -329,7 +331,7 @@ router.post('/exchange/:profileId', async (req, res) => {
       profile.contactExchanges.lastReset = now;
     }
 
-    const limit = getContactLimit(profile.subscriptionPlan);
+    const limit = getContactLimit(profile.subscription.plan);
     if (profile.contactExchanges.count >= limit) {
       return res.status(403).json({ message: 'Monthly contact exchange limit reached' });
     }

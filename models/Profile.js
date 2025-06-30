@@ -84,11 +84,8 @@ const profileSchema = new mongoose.Schema({
     twitter: { type: String, default: '' }
   },
 
-  // Add inside the ProfileSchema definition
-  subscriptionPlan: {
-    type: String, 
-    enum: ['Novice', 'Corporate', 'Elite'], default: 'Novice'
-  },
+  // Remove or deprecate profile.subscriptionPlan from Profile schema
+  // (You may want to run a migration to remove this field from the database if not needed)
 
   // Contact exchanges (single object version)
   contactExchanges: {
