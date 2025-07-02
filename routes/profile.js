@@ -35,6 +35,7 @@ router.get('/:id', async (req, res) => {
   try {
     const profile = await Profile.findById(req.params.id);
     if (!profile) return res.status(404).json({ message: 'Profile not found' });
+    if (!profile.active) return res.status(403).json({ error: 'Profile deactivated' });
     // Always expose a single 'slug' field
     const slug = profile.customSlug || profile.activationCode;
     // Prepare subscription details with expiresAt
@@ -204,6 +205,8 @@ router.get('/:id/insights', async (req, res) => {
       return res.status(404).json({ message: 'Profile not found' });
     }
     
+    if (!profile.active) return res.status(403).json({ error: 'Profile deactivated' });
+
     if (!profile.insightsEnabled) {
       return res.status(403).json({ message: 'Insights are not enabled for this profile.' });
     }
@@ -345,6 +348,13 @@ router.post('/exchange/:profileId', async (req, res) => {
     console.error('Contact exchange error:', error);
     res.status(500).json({ message: 'Server error' });
   }
+});
+
+// PATCH /api/profile/:id/deactivate
+router.patch('/:id/deactivate', async (req, res) => {
+  const { id } = req.params;
+  await Profile.findByIdAndUpdate(id, { active: false });
+  res.json({ success: true });
 });
 
 module.exports = router;

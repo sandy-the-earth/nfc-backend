@@ -6,6 +6,9 @@ const planGate = require('../middleware/planGate');
 
 // 🔹 GET public profile by activationCode OR customSlug
 router.get('/:activationCode', loadProfile, planGate, (req, res) => {
+  if (!res.locals.profile.active) {
+    return res.status(403).json({ error: 'Profile deactivated' });
+  }
   res.json(res.locals.filteredProfile);
 });
 
@@ -19,6 +22,7 @@ router.get('/:activationCode/insights', async (req, res) => {
       ]
     });
     if (!profile) return res.status(404).json({ message: 'Profile not found' });
+    if (!profile.active) return res.status(403).json({ error: 'Profile deactivated' });
 
     // Calculate unique visitors (by ip+userAgent)
     const uniqueSet = new Set(profile.views.map(v => v.ip + '|' + v.userAgent));
