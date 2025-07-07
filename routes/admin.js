@@ -94,9 +94,12 @@ router.get('/profiles', async (req, res) => {
           expiresAt: null
         };
       }
+      // Add a computed status field for admin dashboard
+      const computedStatus = profile.active === false ? 'deactivated' : (profile.status || 'active');
       return {
         ...profile.toObject(),
-        subscription
+        subscription,
+        computedStatus // This will show 'deactivated' if profile is not active
       };
     });
 
