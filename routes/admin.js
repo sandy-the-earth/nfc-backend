@@ -49,10 +49,6 @@ router.get('/profiles', async (req, res) => {
     if (status && ['active', 'pending_activation'].includes(status)) {
       filter.status = status;
     }
-    // Show all profiles, including deactivated, but include 'active' status in the response
-    if (status !== 'all') {
-      filter.active = { $ne: false };
-    }
     if (search) {
       const regex = new RegExp(search.trim(), 'i');
       filter.$or = [
