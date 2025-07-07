@@ -49,7 +49,7 @@ router.get('/profiles', async (req, res) => {
     if (status && ['active', 'pending_activation'].includes(status)) {
       filter.status = status;
     }
-    // Hide deactivated profiles unless explicitly requested
+    // Show all profiles, including deactivated, but include 'active' status in the response
     if (status !== 'all') {
       filter.active = { $ne: false };
     }
@@ -412,6 +412,20 @@ router.put('/profile/:id/subscription', async (req, res) => {
 
   } catch (err) {
     console.error('Admin: error updating subscription plan', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ─── ACTIVATE PROFILE ─────────────────────────────────────────────────
+// PATCH /api/admin/profile/:id/activate
+router.patch('/profile/:id/activate', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const profile = await Profile.findByIdAndUpdate(id, { active: true }, { new: true });
+    if (!profile) return res.status(404).json({ message: 'Profile not found' });
+    res.json({ message: 'Profile activated', profile });
+  } catch (err) {
+    console.error('Admin: error activating profile', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
