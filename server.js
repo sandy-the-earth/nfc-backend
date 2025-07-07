@@ -31,7 +31,7 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-key'], // <-- add this line
 };
 
-// ✅ Apply CORS to all requests including preflight
+// Ensure CORS is the very first middleware
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // Handle OPTIONS before anything else
 
