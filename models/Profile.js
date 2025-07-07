@@ -162,6 +162,12 @@ const profileSchema = new mongoose.Schema({
   contactDownloads: {
     type: Number,
     default: 0
+  },
+
+  // Deactivation flag
+  active: {
+    type: Boolean,
+    default: true
   }
 
 }, { timestamps: true });

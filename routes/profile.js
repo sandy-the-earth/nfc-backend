@@ -196,6 +196,13 @@ router.patch('/:id/theme', async (req, res) => {
   res.json({ message: 'Theme updated', theme: profile.theme });
 });
 
+// PATCH /api/profile/:id/deactivate
+router.patch('/:id/deactivate', async (req, res) => {
+  const { id } = req.params;
+  await Profile.findByIdAndUpdate(id, { active: false });
+  res.json({ success: true });
+});
+
 // GET /api/profile/:id/insights (dashboard only, for owner)
 router.get('/:id/insights', async (req, res) => {
   try {
