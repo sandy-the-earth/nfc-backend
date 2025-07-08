@@ -9,7 +9,8 @@ const PLAN_FIELDS = {
 const COMMON_FIELDS = ['slug', 'bannerUrl', 'avatarUrl', 'theme', 'createdAt', 'email'];
 
 function filterByPlan(profileObj) {
-  const plan = profileObj.subscriptionPlan || 'Novice';
+  // Use the correct source of truth for plan
+  const plan = (profileObj.subscription && profileObj.subscription.plan) || 'Novice';
   const allowed = PLAN_FIELDS[plan];
   
   // Start with common fields that are always included
@@ -35,4 +36,4 @@ function filterByPlan(profileObj) {
   return filtered;
 }
 
-module.exports = { filterByPlan }; 
+module.exports = { filterByPlan };
