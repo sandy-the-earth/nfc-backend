@@ -429,4 +429,19 @@ router.patch('/profile/:id/activate', async (req, res) => {
   }
 });
 
+// PATCH /api/admin-bs1978av1123ss2402/profile/:id/toggle-status
+router.patch('/profile/:id/toggle-status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const profile = await Profile.findById(id);
+    if (!profile) return res.status(404).json({ message: 'Profile not found' });
+    profile.active = !profile.active;
+    await profile.save();
+    res.json({ message: `Profile status toggled to ${profile.active ? 'active' : 'deactivated'}`, active: profile.active, profile });
+  } catch (err) {
+    console.error('Admin: error toggling profile status', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
