@@ -21,25 +21,30 @@ function filterByPlan(profileObj) {
     }
   });
 
-  // Always include subscription.plan in the response
-  filtered.subscription = filtered.subscription || {};
-  filtered.subscription.plan = plan;
+  // Always include subscription object with all relevant keys
+  filtered.subscription = {
+    plan: plan,
+    cycle: (profileObj.subscription && profileObj.subscription.cycle) || null,
+    activatedAt: (profileObj.subscription && profileObj.subscription.activatedAt) || null,
+    expiresAt: (profileObj.subscription && profileObj.subscription.expiresAt) || null,
+    code: (profileObj.subscription && profileObj.subscription.code) || null
+  };
 
   // If Elite plan, include all fields and check for missing required fields
   if (!allowed) {
     const eliteRequired = [
       'name', 'title', 'subtitle', 'tags', 'phone', 'socialLinks',
-      'industry', 'website', 'bannerUrl', 'avatarUrl', 'theme', 'email'
+      'industry', 'website', 'bannerUrl', 'avatarUrl', 'theme', 'email',
+      'location', 'customSlug', 'exclusiveBadge', 'createdAt'
     ];
     const missing = eliteRequired.filter(f => profileObj[f] === undefined || profileObj[f] === null || profileObj[f] === '');
     if (missing.length > 0) {
       // Log a warning (server-side) if any required fields are missing for Elite
       console.warn(`Elite profile missing fields: ${missing.join(', ')}`);
     }
-    // Ensure subscription.plan is present in Elite response
+    // Ensure subscription object is present in Elite response
     const eliteProfile = { ...profileObj };
-    eliteProfile.subscription = eliteProfile.subscription || {};
-    eliteProfile.subscription.plan = plan;
+    eliteProfile.subscription = filtered.subscription;
     return eliteProfile;
   }
 
