@@ -13,16 +13,8 @@ function filterByPlan(profileObj) {
   const plan = (profileObj.subscription && profileObj.subscription.plan) || 'Novice';
   const allowed = PLAN_FIELDS[plan];
 
-  // Start with common fields that are always included
-  const filtered = {};
-  COMMON_FIELDS.forEach(field => {
-    if (profileObj[field] !== undefined) {
-      filtered[field] = profileObj[field];
-    }
-  });
-
-  // Always include subscription object with all relevant keys
-  filtered.subscription = {
+  // Standardized subscription object
+  const subscription = {
     plan: plan,
     cycle: (profileObj.subscription && profileObj.subscription.cycle) || null,
     activatedAt: (profileObj.subscription && profileObj.subscription.activatedAt) || null,
@@ -30,31 +22,39 @@ function filterByPlan(profileObj) {
     code: (profileObj.subscription && profileObj.subscription.code) || null
   };
 
-  // If Elite plan, include all fields and check for missing required fields
+  // If Elite plan, include all fields and ensure consistency
   if (!allowed) {
+    const eliteProfile = { ...profileObj };
+    eliteProfile.subscription = subscription;
+    // Ensure all required fields are present (even if empty)
     const eliteRequired = [
       'name', 'title', 'subtitle', 'tags', 'phone', 'socialLinks',
       'industry', 'website', 'bannerUrl', 'avatarUrl', 'theme', 'email',
       'location', 'customSlug', 'exclusiveBadge', 'createdAt'
     ];
-    const missing = eliteRequired.filter(f => profileObj[f] === undefined || profileObj[f] === null || profileObj[f] === '');
-    if (missing.length > 0) {
-      // Log a warning (server-side) if any required fields are missing for Elite
-      console.warn(`Elite profile missing fields: ${missing.join(', ')}`);
-    }
-    // Ensure subscription object is present in Elite response
-    const eliteProfile = { ...profileObj };
-    eliteProfile.subscription = filtered.subscription;
+    eliteRequired.forEach(f => {
+      if (eliteProfile[f] === undefined) eliteProfile[f] = null;
+    });
     return eliteProfile;
   }
 
-  // For other plans, only include allowed fields
+  // For other plans, only include allowed fields + always the standardized subscription object
+  const filtered = {};
+  COMMON_FIELDS.forEach(field => {
+    if (profileObj[field] !== undefined) {
+      filtered[field] = profileObj[field];
+    } else {
+      filtered[field] = null;
+    }
+  });
   allowed.forEach(field => {
     if (profileObj[field] !== undefined) {
       filtered[field] = profileObj[field];
+    } else {
+      filtered[field] = null;
     }
   });
-
+  filtered.subscription = subscription;
   return filtered;
 }
 
