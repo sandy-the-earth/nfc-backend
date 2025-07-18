@@ -30,6 +30,81 @@ router.get('/industries', (req, res) => {
   }
 });
 
+// 🔹 REORDER fields
+router.post('/reorder-fields', async (req, res) => {
+  try {
+    const { userId, orderedFields } = req.body;
+    if (!userId || !orderedFields) {
+      return res.status(400).json({ message: 'User ID and ordered fields are required' });
+    }
+
+    const profile = await Profile.findByIdAndUpdate(
+      userId,
+      { fieldOrder: orderedFields },
+      { new: true }
+    );
+
+    if (!profile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+
+    res.json({ message: 'Fields reordered successfully', profile });
+  } catch (err) {
+    console.error('Error reordering fields:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 🔹 UPLOAD profile image (new route)
+router.post('/upload-profile-image', upload.single('profileImage'), async (req, res) => {
+  if (!req.file || !req.file.path) {
+    return res.status(400).json({ message: 'No file uploaded or upload failed' });
+  }
+  try {
+    // The user ID should be sent in the request body
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    const profile = await Profile.findByIdAndUpdate(
+      userId,
+      { avatarUrl: req.file.path }, // Assuming the profile image updates the avatarUrl
+      { new: true }
+    );
+
+    if (!profile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+
+    res.json({ url: req.file.path });
+  } catch (err) {
+    console.error('Profile image upload failed:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// 🔹 SAVE profile data (new route)
+router.post('/save-profile-data', async (req, res) => {
+  try {
+    const { userId, profileData } = req.body;
+    if (!userId || !profileData) {
+      return res.status(400).json({ message: 'User ID and profile data are required' });
+    }
+
+    const profile = await Profile.findOneAndUpdate(
+      { _id: userId },
+      { $set: profileData },
+      { new: true, upsert: true }
+    );
+
+    res.json({ message: 'Profile data saved successfully', profile });
+  } catch (err) {
+    console.error('Error saving profile data:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // 🔹 GET profile by ID
 router.get('/:id', async (req, res) => {
   try {
