@@ -261,6 +261,11 @@ router.get('/:id/insights', async (req, res) => {
       .map(([link, count]) => ({ link, count }))
       .sort((a, b) => b.count - a.count);
 
+    // Create link tap breakdown leaderboard
+    const linkTapBreakdown = Object.entries(linkClicksObj)
+      .map(([link, count]) => ({ link, total: count }))
+      .sort((a, b) => b.total - a.total);
+
     // Contact exchange credits logic
     const getContactLimit = (plan) => {
       switch (plan) {
@@ -372,6 +377,7 @@ router.get('/:id/insights', async (req, res) => {
       contactDownloads: profile.contactDownloads || 0,
       viewCountsOverTime,
       linkTapsOverTime,
+      linkTapBreakdown, // <-- add this for dashboard
       lastViewedAt: profile.lastViewedAt,
       totalLinkTaps,
       topLink,
