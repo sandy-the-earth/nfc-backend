@@ -277,23 +277,62 @@ router.get('/:id/insights', async (req, res) => {
     const remaining = limit === Infinity ? 'Unlimited' : Math.max(0, limit - used);
 
     // Add insightVisibility for dashboard gatekeeping
-    const insightVisibility = {
-      totalViews: true,
-      uniqueVisitors: true,
-      contactExchanges: true,
-      contactExchangeLimit: true,
-      contactExchangeRemaining: true,
-      contactSaves: true,
-      contactDownloads: plan === 'Corporate' || plan === 'Elite',
-      viewCountsOverTime: plan === 'Elite',
-      linkTapsOverTime: plan === 'Elite',
-      lastViewedAt: plan === 'Elite',
-      totalLinkTaps: plan === 'Elite',
-      topLink: plan === 'Elite',
-      createdAt: plan === 'Elite',
-      updatedAt: plan === 'Elite',
-      subscription: true
-    };
+    let insightVisibility;
+    if (plan === 'Elite') {
+      insightVisibility = {
+        totalViews: true,
+        uniqueVisitors: true,
+        contactExchanges: true,
+        contactExchangeLimit: true,
+        contactExchangeRemaining: true,
+        contactSaves: true,
+        contactDownloads: true,
+        viewCountsOverTime: true,
+        linkTapsOverTime: true,
+        lastViewedAt: true,
+        totalLinkTaps: true,
+        topLink: true,
+        createdAt: true,
+        updatedAt: true,
+        subscription: true
+      };
+    } else if (plan === 'Corporate') {
+      insightVisibility = {
+        totalViews: true,
+        uniqueVisitors: true,
+        contactExchanges: true,
+        contactExchangeLimit: true,
+        contactExchangeRemaining: true,
+        contactSaves: true,
+        contactDownloads: true,
+        viewCountsOverTime: false,
+        linkTapsOverTime: false,
+        lastViewedAt: false,
+        totalLinkTaps: false,
+        topLink: false,
+        createdAt: false,
+        updatedAt: false,
+        subscription: true
+      };
+    } else { // Novice or default
+      insightVisibility = {
+        totalViews: true,
+        uniqueVisitors: true,
+        contactExchanges: true,
+        contactExchangeLimit: true,
+        contactExchangeRemaining: true,
+        contactSaves: true,
+        contactDownloads: false,
+        viewCountsOverTime: false,
+        linkTapsOverTime: false,
+        lastViewedAt: false,
+        totalLinkTaps: false,
+        topLink: false,
+        createdAt: false,
+        updatedAt: false,
+        subscription: true
+      };
+    }
 
     // Prepare normalized subscription object
     let subscription = null;
