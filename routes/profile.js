@@ -276,6 +276,10 @@ router.get('/:id/insights', async (req, res) => {
     const used = profile.contactExchanges.count;
     const remaining = limit === Infinity ? 'Unlimited' : Math.max(0, limit - used);
 
+    // Always include viewCountsOverTime (normal view graph)
+    // Only include detailedViewCountsOverTime for Corporate and Elite
+    const detailedViewCountsOverTime = viewCountsOverTime; // Placeholder, use same data or adjust as needed
+
     // Add insightVisibility for dashboard gatekeeping
     const insightVisibility = (() => {
       if (plan === 'Elite' || plan === 'Corporate') {
@@ -287,7 +291,8 @@ router.get('/:id/insights', async (req, res) => {
           contactExchangeRemaining: true,
           contactSaves: true,
           contactDownloads: plan === 'Corporate' || plan === 'Elite',
-          viewCountsOverTime: true,
+          viewCountsOverTime: true, // normal view graph always visible
+          detailedViewCountsOverTime: true, // detailed graph visible for Corporate/Elite
           lastViewedAt: plan === 'Elite',
           totalLinkTaps: plan === 'Elite',
           topLink: plan === 'Elite',
@@ -304,7 +309,8 @@ router.get('/:id/insights', async (req, res) => {
           contactExchangeRemaining: true,
           contactSaves: true,
           contactDownloads: false,
-          viewCountsOverTime: false,
+          viewCountsOverTime: true, // normal view graph always visible
+          detailedViewCountsOverTime: false, // detailed graph not visible for Novice
           lastViewedAt: false,
           totalLinkTaps: false,
           topLink: false,
@@ -351,7 +357,8 @@ router.get('/:id/insights', async (req, res) => {
       contactExchangeRemaining: remaining,
       contactSaves: profile.contactSaves,
       contactDownloads: profile.contactDownloads || 0,
-      ...(insightVisibility.viewCountsOverTime ? { viewCountsOverTime } : {}),
+      viewCountsOverTime, // always included
+      ...(insightVisibility.detailedViewCountsOverTime ? { detailedViewCountsOverTime } : {}),
       lastViewedAt: profile.lastViewedAt,
       totalLinkTaps,
       topLink,
