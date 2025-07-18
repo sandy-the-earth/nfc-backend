@@ -278,7 +278,7 @@ router.get('/:id/insights', async (req, res) => {
 
     // Add insightVisibility for dashboard gatekeeping
     const insightVisibility = (() => {
-      if (plan === 'Elite') {
+      if (plan === 'Elite' || plan === 'Corporate') {
         return {
           totalViews: true,
           uniqueVisitors: true,
@@ -286,30 +286,13 @@ router.get('/:id/insights', async (req, res) => {
           contactExchangeLimit: true,
           contactExchangeRemaining: true,
           contactSaves: true,
-          contactDownloads: true,
+          contactDownloads: plan === 'Corporate' || plan === 'Elite',
           viewCountsOverTime: true,
-          lastViewedAt: true,
-          totalLinkTaps: true,
-          topLink: true,
-          createdAt: true,
-          updatedAt: true,
-          subscription: true
-        };
-      } else if (plan === 'Corporate') {
-        return {
-          totalViews: true,
-          uniqueVisitors: true,
-          contactExchanges: true,
-          contactExchangeLimit: true,
-          contactExchangeRemaining: true,
-          contactSaves: true,
-          contactDownloads: true,
-          viewCountsOverTime: false,
-          lastViewedAt: false,
-          totalLinkTaps: false,
-          topLink: false,
-          createdAt: false,
-          updatedAt: false,
+          lastViewedAt: plan === 'Elite',
+          totalLinkTaps: plan === 'Elite',
+          topLink: plan === 'Elite',
+          createdAt: plan === 'Elite',
+          updatedAt: plan === 'Elite',
           subscription: true
         };
       } else {
@@ -368,7 +351,7 @@ router.get('/:id/insights', async (req, res) => {
       contactExchangeRemaining: remaining,
       contactSaves: profile.contactSaves,
       contactDownloads: profile.contactDownloads || 0,
-      viewCountsOverTime,
+      ...(insightVisibility.viewCountsOverTime ? { viewCountsOverTime } : {}),
       lastViewedAt: profile.lastViewedAt,
       totalLinkTaps,
       topLink,
