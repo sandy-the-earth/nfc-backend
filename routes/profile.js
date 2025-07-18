@@ -261,11 +261,6 @@ router.get('/:id/insights', async (req, res) => {
       .map(([link, count]) => ({ link, count }))
       .sort((a, b) => b.count - a.count);
 
-    // Create link tap breakdown leaderboard
-    const linkTapBreakdown = Object.entries(linkClicksObj)
-      .map(([link, count]) => ({ link, total: count }))
-      .sort((a, b) => b.total - a.total);
-
     // Contact exchange credits logic
     const getContactLimit = (plan) => {
       switch (plan) {
@@ -282,62 +277,60 @@ router.get('/:id/insights', async (req, res) => {
     const remaining = limit === Infinity ? 'Unlimited' : Math.max(0, limit - used);
 
     // Add insightVisibility for dashboard gatekeeping
-    let insightVisibility;
-    if (plan === 'Elite') {
-      insightVisibility = {
-        totalViews: true,
-        uniqueVisitors: true,
-        contactExchanges: true,
-        contactExchangeLimit: true,
-        contactExchangeRemaining: true,
-        contactSaves: true,
-        contactDownloads: true,
-        viewCountsOverTime: true,
-        linkTapsOverTime: true,
-        lastViewedAt: true,
-        totalLinkTaps: true,
-        topLink: true,
-        createdAt: true,
-        updatedAt: true,
-        subscription: true
-      };
-    } else if (plan === 'Corporate') {
-      insightVisibility = {
-        totalViews: true,
-        uniqueVisitors: true,
-        contactExchanges: true,
-        contactExchangeLimit: true,
-        contactExchangeRemaining: true,
-        contactSaves: true,
-        contactDownloads: true,
-        viewCountsOverTime: false,
-        linkTapsOverTime: false,
-        lastViewedAt: false,
-        totalLinkTaps: false,
-        topLink: false,
-        createdAt: false,
-        updatedAt: false,
-        subscription: true
-      };
-    } else { // Novice or default
-      insightVisibility = {
-        totalViews: true,
-        uniqueVisitors: true,
-        contactExchanges: true,
-        contactExchangeLimit: true,
-        contactExchangeRemaining: true,
-        contactSaves: true,
-        contactDownloads: false,
-        viewCountsOverTime: false,
-        linkTapsOverTime: false,
-        lastViewedAt: false,
-        totalLinkTaps: false,
-        topLink: false,
-        createdAt: false,
-        updatedAt: false,
-        subscription: true
-      };
-    }
+    const insightVisibility = (() => {
+      if (plan === 'Elite') {
+        return {
+          totalViews: true,
+          uniqueVisitors: true,
+          contactExchanges: true,
+          contactExchangeLimit: true,
+          contactExchangeRemaining: true,
+          contactSaves: true,
+          contactDownloads: true,
+          viewCountsOverTime: true,
+          lastViewedAt: true,
+          totalLinkTaps: true,
+          topLink: true,
+          createdAt: true,
+          updatedAt: true,
+          subscription: true
+        };
+      } else if (plan === 'Corporate') {
+        return {
+          totalViews: true,
+          uniqueVisitors: true,
+          contactExchanges: true,
+          contactExchangeLimit: true,
+          contactExchangeRemaining: true,
+          contactSaves: true,
+          contactDownloads: true,
+          viewCountsOverTime: false,
+          lastViewedAt: false,
+          totalLinkTaps: false,
+          topLink: false,
+          createdAt: false,
+          updatedAt: false,
+          subscription: true
+        };
+      } else {
+        return {
+          totalViews: true,
+          uniqueVisitors: true,
+          contactExchanges: true,
+          contactExchangeLimit: true,
+          contactExchangeRemaining: true,
+          contactSaves: true,
+          contactDownloads: false,
+          viewCountsOverTime: false,
+          lastViewedAt: false,
+          totalLinkTaps: false,
+          topLink: false,
+          createdAt: false,
+          updatedAt: false,
+          subscription: true
+        };
+      }
+    })();
 
     // Prepare normalized subscription object
     let subscription = null;
@@ -376,15 +369,13 @@ router.get('/:id/insights', async (req, res) => {
       contactSaves: profile.contactSaves,
       contactDownloads: profile.contactDownloads || 0,
       viewCountsOverTime,
-      linkTapsOverTime,
-      linkTapBreakdown, // <-- add this for dashboard
       lastViewedAt: profile.lastViewedAt,
       totalLinkTaps,
       topLink,
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt,
       subscription,
-      insightVisibility // <-- add this to the response
+      insightVisibility
     });
   } catch (err) {
     console.error('Dashboard insights error:', err);
