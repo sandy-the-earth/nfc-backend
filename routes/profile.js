@@ -276,6 +276,25 @@ router.get('/:id/insights', async (req, res) => {
     const used = profile.contactExchanges.count;
     const remaining = limit === Infinity ? 'Unlimited' : Math.max(0, limit - used);
 
+    // Add insightVisibility for dashboard gatekeeping
+    const insightVisibility = {
+      totalViews: true,
+      uniqueVisitors: true,
+      contactExchanges: true,
+      contactExchangeLimit: true,
+      contactExchangeRemaining: true,
+      contactSaves: true,
+      contactDownloads: plan === 'Corporate' || plan === 'Elite',
+      viewCountsOverTime: plan === 'Elite',
+      linkTapsOverTime: plan === 'Elite',
+      lastViewedAt: plan === 'Elite',
+      totalLinkTaps: plan === 'Elite',
+      topLink: plan === 'Elite',
+      createdAt: plan === 'Elite',
+      updatedAt: plan === 'Elite',
+      subscription: true
+    };
+
     // Prepare normalized subscription object
     let subscription = null;
     if (profile.subscription && profile.subscription.plan && profile.subscription.activatedAt) {
@@ -319,7 +338,8 @@ router.get('/:id/insights', async (req, res) => {
       topLink,
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt,
-      subscription
+      subscription,
+      insightVisibility // <-- add this to the response
     });
   } catch (err) {
     console.error('Dashboard insights error:', err);

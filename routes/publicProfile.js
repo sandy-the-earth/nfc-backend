@@ -59,23 +59,6 @@ router.get('/:activationCode/insights', async (req, res) => {
     const used = profile.contactExchanges?.count || 0;
     const remaining = limit === Infinity ? 'Unlimited' : Math.max(0, limit - used);
 
-    // Determine insight visibility based on plan
-    const plan = profile.subscriptionPlan;
-    const insightVisibility = {
-      totalViews: plan === 'Novice' || plan === 'Corporate' || plan === 'Elite',
-      uniqueVisitors: plan === 'Novice' || plan === 'Corporate' || plan === 'Elite',
-      contactExchanges: plan === 'Novice' || plan === 'Corporate' || plan === 'Elite',
-      contactExchangeLimit: plan === 'Novice' || plan === 'Corporate' || plan === 'Elite',
-      contactExchangeRemaining: plan === 'Novice' || plan === 'Corporate' || plan === 'Elite',
-      contactDownloads: plan === 'Corporate' || plan === 'Elite',
-      lastViewedAt: plan === 'Elite',
-      totalLinkTaps: plan === 'Elite',
-      topLink: plan === 'Elite',
-      linkClicks: plan === 'Elite',
-      createdAt: plan === 'Elite',
-      updatedAt: plan === 'Elite',
-    };
-
     res.json({
       totalViews: profile.views.length,
       uniqueVisitors: uniqueSet.size,
@@ -88,8 +71,7 @@ router.get('/:activationCode/insights', async (req, res) => {
       topLink,
       linkClicks: linkClicksObj,
       createdAt: profile.createdAt,
-      updatedAt: profile.updatedAt,
-      insightVisibility // <-- add this to the response
+      updatedAt: profile.updatedAt
     });
   } catch (err) {
     console.error('Insights error:', err);
