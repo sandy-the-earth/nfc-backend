@@ -59,10 +59,10 @@ router.get('/:activationCode/insights', async (req, res) => {
     const used = profile.contactExchanges?.count || 0;
     const remaining = limit === Infinity ? 'Unlimited' : Math.max(0, limit - used);
 
-    // Industry aggregation for Corporate profiles
+    // Industry aggregation for Corporate and Elite profiles
     let industryAggregation = undefined;
     const plan = profile.subscriptionPlan || profile.subscription?.plan;
-    if (plan === 'Corporate') {
+    if (plan === 'Corporate' || plan === 'Elite') {
       industryAggregation = {};
       for (const v of profile.views) {
         if (v.industry && v.industry.trim()) {
@@ -183,9 +183,9 @@ router.post('/:activationCode/view', async (req, res) => {
       return res.status(403).json({ error: 'Profile deactivated' });
     }
 
-    // Only require industry/company for Corporate plan
+    // Only require industry/company for Corporate or Elite plan
     const plan = profile.subscriptionPlan || profile.subscription?.plan;
-    if (plan === 'Corporate') {
+    if (plan === 'Corporate' || plan === 'Elite') {
       if (!industry || typeof industry !== 'string' || !industry.trim()) {
         return res.status(400).json({ message: 'Industry is required for this profile.' });
       }
@@ -196,8 +196,8 @@ router.post('/:activationCode/view', async (req, res) => {
       date: new Date(),
       ip,
       userAgent,
-      industry: plan === 'Corporate' ? industry : '',
-      company: plan === 'Corporate' ? (company || '') : ''
+      industry: (plan === 'Corporate' || plan === 'Elite') ? industry : '',
+      company: (plan === 'Corporate' || plan === 'Elite') ? (company || '') : ''
     });
     profile.lastViewedAt = new Date();
     await profile.save();
