@@ -121,7 +121,9 @@ const profileSchema = new mongoose.Schema({
     {
       date: { type: Date, default: Date.now },
       ip: String,
-      userAgent: String
+      userAgent: String,
+      industry: { type: String, default: '' }, // Added for corporate insight
+      company: { type: String, default: '' }   // Optional
     }
   ],
   contactSaves: {

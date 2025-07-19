@@ -59,6 +59,18 @@ router.get('/:activationCode/insights', async (req, res) => {
     const used = profile.contactExchanges?.count || 0;
     const remaining = limit === Infinity ? 'Unlimited' : Math.max(0, limit - used);
 
+    // Industry aggregation for Corporate profiles
+    let industryAggregation = undefined;
+    const plan = profile.subscriptionPlan || profile.subscription?.plan;
+    if (plan === 'Corporate') {
+      industryAggregation = {};
+      for (const v of profile.views) {
+        if (v.industry && v.industry.trim()) {
+          industryAggregation[v.industry] = (industryAggregation[v.industry] || 0) + 1;
+        }
+      }
+    }
+
     res.json({
       totalViews: profile.views.length,
       uniqueVisitors: uniqueSet.size,
@@ -71,7 +83,8 @@ router.get('/:activationCode/insights', async (req, res) => {
       topLink,
       linkClicks: linkClicksObj,
       createdAt: profile.createdAt,
-      updatedAt: profile.updatedAt
+      updatedAt: profile.updatedAt,
+      ...(industryAggregation ? { viewsByIndustry: industryAggregation } : {})
     });
   } catch (err) {
     console.error('Insights error:', err);
@@ -146,6 +159,52 @@ router.post('/:activationCode/contact-download', async (req, res) => {
     });
   } catch (err) {
     console.error('Error recording contact download:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// POST /api/public/:activationCode/view - Record a profile view with industry/company for Corporate
+router.post('/:activationCode/view', async (req, res) => {
+  try {
+    const { industry, company } = req.body;
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const userAgent = req.headers['user-agent'] || '';
+
+    const profile = await Profile.findOne({
+      $or: [
+        { activationCode: req.params.activationCode },
+        { customSlug: req.params.activationCode }
+      ]
+    });
+    if (!profile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+    if (profile.active === false) {
+      return res.status(403).json({ error: 'Profile deactivated' });
+    }
+
+    // Only require industry/company for Corporate plan
+    const plan = profile.subscriptionPlan || profile.subscription?.plan;
+    if (plan === 'Corporate') {
+      if (!industry || typeof industry !== 'string' || !industry.trim()) {
+        return res.status(400).json({ message: 'Industry is required for this profile.' });
+      }
+    }
+
+    // Add the view
+    profile.views.push({
+      date: new Date(),
+      ip,
+      userAgent,
+      industry: plan === 'Corporate' ? industry : '',
+      company: plan === 'Corporate' ? (company || '') : ''
+    });
+    profile.lastViewedAt = new Date();
+    await profile.save();
+
+    res.json({ message: 'View recorded' });
+  } catch (err) {
+    console.error('Error recording view:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
