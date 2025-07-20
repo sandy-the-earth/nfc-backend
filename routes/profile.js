@@ -276,6 +276,17 @@ router.get('/:id/insights', async (req, res) => {
     const used = profile.contactExchanges.count;
     const remaining = limit === Infinity ? 'Unlimited' : Math.max(0, limit - used);
 
+    // Industry aggregation for Corporate and Elite profiles
+    let viewsByIndustry = undefined;
+    if (plan === 'Corporate' || plan === 'Elite') {
+      viewsByIndustry = {};
+      for (const v of profile.views) {
+        if (v.industry && v.industry.trim()) {
+          viewsByIndustry[v.industry] = (viewsByIndustry[v.industry] || 0) + 1;
+        }
+      }
+    }
+
     // Always include viewCountsOverTime (normal view graph)
     // Only include detailedViewCountsOverTime for Corporate and Elite
     const detailedViewCountsOverTime = viewCountsOverTime; // Placeholder, use same data or adjust as needed
@@ -365,7 +376,8 @@ router.get('/:id/insights', async (req, res) => {
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt,
       subscription,
-      insightVisibility
+      insightVisibility,
+      ...(viewsByIndustry ? { viewsByIndustry } : {})
     });
   } catch (err) {
     console.error('Dashboard insights error:', err);
