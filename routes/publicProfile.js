@@ -62,16 +62,20 @@ router.get('/:activationCode/insights', async (req, res) => {
     // Industry aggregation for Corporate and Elite profiles
     let industryAggregation = undefined;
     const plan = profile.subscriptionPlan || profile.subscription?.plan;
+    console.log('Debug - Profile plan:', plan);
     if (plan === 'Corporate' || plan === 'Elite') {
       industryAggregation = {};
+      console.log('Debug - Processing views for industry aggregation. Total views:', profile.views.length);
       for (const v of profile.views) {
         if (v.industry && v.industry.trim()) {
           industryAggregation[v.industry] = (industryAggregation[v.industry] || 0) + 1;
+          console.log('Debug - Found view with industry:', v.industry);
         }
       }
+      console.log('Debug - Final industryAggregation:', industryAggregation);
     }
 
-    res.json({
+    const responseObj = {
       totalViews: profile.views.length,
       uniqueVisitors: uniqueSet.size,
       contactExchanges: used,
@@ -85,7 +89,9 @@ router.get('/:activationCode/insights', async (req, res) => {
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt,
       ...(industryAggregation ? { viewsByIndustry: industryAggregation } : {})
-    });
+    };
+    console.log('Debug - Final response object keys:', Object.keys(responseObj));
+    res.json(responseObj);
   } catch (err) {
     console.error('Insights error:', err);
     res.status(500).json({ message: 'Server error' });
