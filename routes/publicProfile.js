@@ -62,17 +62,14 @@ router.get('/:activationCode/insights', async (req, res) => {
     // Industry aggregation for Corporate and Elite profiles
     let industryAggregation = undefined;
     const plan = profile.subscriptionPlan || profile.subscription?.plan;
-    console.log('Debug - Profile plan:', plan);
+    
     if (plan === 'Corporate' || plan === 'Elite') {
       industryAggregation = {};
-      console.log('Debug - Processing views for industry aggregation. Total views:', profile.views.length);
       for (const v of profile.views) {
         if (v.industry && v.industry.trim()) {
           industryAggregation[v.industry] = (industryAggregation[v.industry] || 0) + 1;
-          console.log('Debug - Found view with industry:', v.industry);
         }
       }
-      console.log('Debug - Final industryAggregation:', industryAggregation);
     }
 
     const responseObj = {
@@ -90,7 +87,6 @@ router.get('/:activationCode/insights', async (req, res) => {
       updatedAt: profile.updatedAt,
       ...(industryAggregation ? { viewsByIndustry: industryAggregation } : {})
     };
-    console.log('Debug - Final response object keys:', Object.keys(responseObj));
     res.json(responseObj);
   } catch (err) {
     console.error('Insights error:', err);
@@ -191,6 +187,7 @@ router.post('/:activationCode/view', async (req, res) => {
 
     // Only require industry/company for Corporate or Elite plan
     const plan = profile.subscriptionPlan || profile.subscription?.plan;
+    
     if (plan === 'Corporate' || plan === 'Elite') {
       if (!industry || typeof industry !== 'string' || !industry.trim()) {
         return res.status(400).json({ message: 'Industry is required for this profile.' });
@@ -198,13 +195,21 @@ router.post('/:activationCode/view', async (req, res) => {
     }
 
     // Add the view
-    profile.views.push({
+    const viewData = {
       date: new Date(),
       ip,
       userAgent,
-      industry: (plan === 'Corporate' || plan === 'Elite') ? industry : '',
-      company: (plan === 'Corporate' || plan === 'Elite') ? (company || '') : ''
-    });
+      industry: '',
+      company: ''
+    };
+    
+    // Only save industry/company if plan is Corporate or Elite
+    if (plan === 'Corporate' || plan === 'Elite') {
+      viewData.industry = industry || '';
+      viewData.company = company || '';
+    }
+    
+    profile.views.push(viewData);
     profile.lastViewedAt = new Date();
     await profile.save();
 
