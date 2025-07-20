@@ -4,14 +4,6 @@ const Profile = require('../models/Profile');
 const loadProfile = require('../middleware/loadProfile');
 const planGate = require('../middleware/planGate');
 
-// 🔹 GET public profile by activationCode OR customSlug
-router.get('/:activationCode', loadProfile, planGate, (req, res) => {
-  if (res.locals.profile.active === false) {
-    return res.status(403).json({ error: 'Profile deactivated' });
-  }
-  res.json(res.locals.filteredProfile);
-});
-
 // GET /api/public/:activationCode/insights
 router.get('/:activationCode/insights', async (req, res) => {
   try {
@@ -92,6 +84,14 @@ router.get('/:activationCode/insights', async (req, res) => {
     console.error('Insights error:', err);
     res.status(500).json({ message: 'Server error' });
   }
+});
+
+// 🔹 GET public profile by activationCode OR customSlug
+router.get('/:activationCode', loadProfile, planGate, (req, res) => {
+  if (res.locals.profile.active === false) {
+    return res.status(403).json({ error: 'Profile deactivated' });
+  }
+  res.json(res.locals.filteredProfile);
 });
 
 // Ensure proper handling of linkTaps and other params
