@@ -94,6 +94,28 @@ router.get('/:activationCode', loadProfile, planGate, (req, res) => {
   res.json(res.locals.filteredProfile);
 });
 
+// GET /api/public/:activationCode/has-industry?ip=...
+router.get('/:activationCode/has-industry', async (req, res) => {
+  try {
+    const { activationCode } = req.params;
+    // Prefer explicit query param, else use headers, else connection
+    const ip = req.query.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const profile = await Profile.findOne({
+      $or: [
+        { activationCode },
+        { customSlug: activationCode }
+      ]
+    });
+    if (!profile) return res.status(404).json({ message: 'Profile not found' });
+    // Check if any view from this IP has a non-empty industry
+    const found = profile.views.some(v => v.ip === ip && v.industry && v.industry.trim());
+    res.json({ hasIndustry: found });
+  } catch (err) {
+    console.error('Error in has-industry endpoint:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Ensure proper handling of linkTaps and other params
 router.post('/:activationCode/link-tap', async (req, res) => {
   try {
