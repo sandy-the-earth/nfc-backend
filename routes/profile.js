@@ -4,6 +4,7 @@ const Profile = require('../models/Profile');
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../utils/cloudinary');
+const { normalizeSubscription } = require('../utils/apiUtils');
 
 // 🔹 Reserved slugs (forbidden values)
 const RESERVED_SLUGS = ['admin', 'dashboard', 'login', 'logout', 'api', 'p'];
@@ -38,33 +39,7 @@ router.get('/:id', async (req, res) => {
     if (profile.active === false) return res.status(403).json({ error: 'Profile deactivated' });
     // Always expose a single 'slug' field
     const slug = profile.customSlug || profile.activationCode;
-    // Prepare subscription details with expiresAt
-    let subscription = null;
-    if (profile.subscription && profile.subscription.plan && profile.subscription.activatedAt) {
-      const { plan, cycle, activatedAt, code } = profile.subscription;
-      let expiresAt = null;
-      if (cycle && activatedAt) {
-        const start = new Date(activatedAt);
-        if (cycle === 'monthly') {
-          expiresAt = new Date(start.setMonth(start.getMonth() + 1));
-        } else if (cycle === 'quarterly') {
-          expiresAt = new Date(start.setMonth(start.getMonth() + 3));
-        }
-      }
-      subscription = {
-        plan,
-        cycle,
-        activatedAt: profile.subscription.activatedAt,
-        expiresAt: expiresAt ? expiresAt.toISOString() : null
-      };
-    } else {
-      subscription = {
-        plan: null,
-        cycle: null,
-        activatedAt: null,
-        expiresAt: null
-      };
-    }
+    const subscription = normalizeSubscription(profile.subscription);
     res.json({ ...profile.toObject(), slug, subscription });
   } catch (err) {
     console.error('Error fetching profile:', err);
@@ -204,186 +179,6 @@ router.patch('/:id/deactivate', async (req, res) => {
   res.json({ success: true });
 });
 
-// GET /api/profile/:id/insights (dashboard only, for owner)
-router.get('/:id/insights', async (req, res) => {
-  try {
-    const profile = await Profile.findById(req.params.id);
-    if (!profile) {
-      return res.status(404).json({ message: 'Profile not found' });
-    }
-    
-    if (profile.active === false) return res.status(403).json({ error: 'Profile deactivated' });
-
-    if (!profile.insightsEnabled) {
-      return res.status(403).json({ message: 'Insights are not enabled for this profile.' });
-    }
-
-    // Initialize arrays/objects if they don't exist
-    if (!profile.views) profile.views = [];
-    if (!profile.linkClicks) profile.linkClicks = new Map();
-    if (!profile.contactExchanges) profile.contactExchanges = { count: 0, lastReset: new Date() };
-    if (typeof profile.contactSaves !== 'number') profile.contactSaves = 0;
-
-    // Aggregate views by day
-    const viewCountsMap = {};
-    for (const v of profile.views) {
-      const d = new Date(v.date);
-      const dateStr = d.toISOString().slice(0, 10); // YYYY-MM-DD
-      viewCountsMap[dateStr] = (viewCountsMap[dateStr] || 0) + 1;
-    }
-    const viewCountsOverTime = Object.entries(viewCountsMap)
-      .map(([date, count]) => ({ date, count }))
-      .sort((a, b) => a.date.localeCompare(b.date));
-
-    // Calculate unique visitors
-    const uniqueSet = new Set(profile.views.map(v => v.ip + '|' + v.userAgent));
-
-    // Process link clicks
-    let totalLinkTaps = 0;
-    let topLink = null;
-    let maxTaps = 0;
-    let linkTapsOverTime = [];
-    
-    // Ensure linkClicks is an object
-    const linkClicksObj = profile.linkClicks || {};
-
-    // Calculate total taps and find top link
-    for (const [link, count] of Object.entries(linkClicksObj)) {
-      totalLinkTaps += count;
-      if (count > maxTaps) {
-        maxTaps = count;
-        topLink = link;
-      }
-    }
-
-    // Create link taps over time data
-    linkTapsOverTime = Object.entries(linkClicksObj)
-      .map(([link, count]) => ({ link, count }))
-      .sort((a, b) => b.count - a.count);
-
-    // Contact exchange credits logic
-    const getContactLimit = (plan) => {
-      switch (plan) {
-        case 'Novice': return 20;
-        case 'Corporate': return 50;
-        case 'Elite': return Infinity;
-        default: return 0;
-      }
-    };
-    // Use plan from profile.subscription, not profile.subscriptionPlan
-    const plan = profile.subscription && profile.subscription.plan ? profile.subscription.plan : 'Novice';
-    const limit = getContactLimit(plan);
-    const used = profile.contactExchanges.count;
-    const remaining = limit === Infinity ? 'Unlimited' : Math.max(0, limit - used);
-
-    // Industry aggregation for Corporate and Elite profiles
-    let viewsByIndustry = undefined;
-    if (plan === 'Corporate' || plan === 'Elite') {
-      viewsByIndustry = {};
-      for (const v of profile.views) {
-        if (v.industry && v.industry.trim()) {
-          viewsByIndustry[v.industry] = (viewsByIndustry[v.industry] || 0) + 1;
-        }
-      }
-    }
-
-    // Always include viewCountsOverTime (normal view graph)
-    // Only include detailedViewCountsOverTime for Corporate and Elite
-    const detailedViewCountsOverTime = viewCountsOverTime; // Placeholder, use same data or adjust as needed
-
-    // Add insightVisibility for dashboard gatekeeping
-    const insightVisibility = (() => {
-      if (plan === 'Elite' || plan === 'Corporate') {
-        return {
-          totalViews: true,
-          uniqueVisitors: true,
-          contactExchanges: true,
-          contactExchangeLimit: true,
-          contactExchangeRemaining: true,
-          contactSaves: true,
-          contactDownloads: plan === 'Corporate' || plan === 'Elite',
-          viewCountsOverTime: true, // normal view graph always visible
-          detailedViewCountsOverTime: true, // detailed graph visible for Corporate/Elite
-          lastViewedAt: plan === 'Elite',
-          totalLinkTaps: plan === 'Elite',
-          topLink: plan === 'Elite',
-          createdAt: plan === 'Elite',
-          updatedAt: plan === 'Elite',
-          subscription: true
-        };
-      } else {
-        return {
-          totalViews: true,
-          uniqueVisitors: true,
-          contactExchanges: true,
-          contactExchangeLimit: true,
-          contactExchangeRemaining: true,
-          contactSaves: true,
-          contactDownloads: false,
-          viewCountsOverTime: true, // normal view graph always visible
-          detailedViewCountsOverTime: false, // detailed graph not visible for Novice
-          lastViewedAt: false,
-          totalLinkTaps: false,
-          topLink: false,
-          createdAt: false,
-          updatedAt: false,
-          subscription: true
-        };
-      }
-    })();
-
-    // Prepare normalized subscription object
-    let subscription = null;
-    if (profile.subscription && profile.subscription.plan && profile.subscription.activatedAt) {
-      const { plan, cycle, activatedAt } = profile.subscription;
-      let expiresAt = null;
-      if (cycle && activatedAt) {
-        const start = new Date(activatedAt);
-        if (cycle === 'monthly') {
-          expiresAt = new Date(start.setMonth(start.getMonth() + 1));
-        } else if (cycle === 'quarterly') {
-          expiresAt = new Date(start.setMonth(start.getMonth() + 3));
-        }
-      }
-      subscription = {
-        plan,
-        cycle,
-        activatedAt: profile.subscription.activatedAt,
-        expiresAt: expiresAt ? expiresAt.toISOString() : null
-      };
-    } else {
-      subscription = {
-        plan: null,
-        cycle: null,
-        activatedAt: null,
-        expiresAt: null
-      };
-    }
-
-    res.json({
-      totalViews: profile.views.length,
-      uniqueVisitors: uniqueSet.size,
-      contactExchanges: used,
-      contactExchangeLimit: limit,
-      contactExchangeRemaining: remaining,
-      contactSaves: profile.contactSaves,
-      contactDownloads: profile.contactDownloads || 0,
-      viewCountsOverTime, // always included
-      ...(insightVisibility.detailedViewCountsOverTime ? { detailedViewCountsOverTime } : {}),
-      lastViewedAt: profile.lastViewedAt,
-      totalLinkTaps,
-      topLink,
-      createdAt: profile.createdAt,
-      updatedAt: profile.updatedAt,
-      subscription,
-      insightVisibility,
-      ...(viewsByIndustry ? { viewsByIndustry } : {})
-    });
-  } catch (err) {
-    console.error('Dashboard insights error:', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
 
 // POST /api/profile/exchange/:profileId - record a contact exchange and enforce plan limits
 router.post('/exchange/:profileId', async (req, res) => {

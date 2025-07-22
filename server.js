@@ -47,6 +47,7 @@ const publicProfileRoutes = require('./routes/publicProfile');
 const contactRoutes = require('./routes/contact');
 const plansRoutes = require('./routes/plans');
 const subscribeRoutes = require('./routes/subscribe');
+const insightsRoutes = require('./routes/insights');
 
 
 // Route Mounting
@@ -59,6 +60,7 @@ app.use('/api/public', publicProfileRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/plans', plansRoutes);
 app.use('/api/subscribe', subscribeRoutes);
+app.use('/api/insights', insightsRoutes);
 
 
 // Health check route
@@ -69,6 +71,12 @@ app.get('/', (req, res) => {
 // Fallback 404 for any non-API route
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
+});
+
+// Centralized error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!' });
 });
 
 // MongoDB connection and server start
