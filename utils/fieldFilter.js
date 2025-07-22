@@ -1,7 +1,7 @@
 // utils/fieldFilter.js
 const PLAN_FIELDS = {
   Novice: ['name', 'title', 'subtitle', 'tags', 'phone', 'socialLinks'],
-  Corporate: ['name', 'title', 'subtitle', 'tags', 'phone', 'socialLinks', 'industry', 'website'],
+  Corporate: ['name', 'title', 'subtitle', 'tags', 'phone', 'socialLinks', 'industry', 'website', 'calendlyLink'],
   Elite: null  // null = no filtering
 };
 
@@ -30,7 +30,8 @@ function filterByPlan(profileObj) {
     const eliteRequired = [
       'name', 'title', 'subtitle', 'tags', 'phone', 'socialLinks',
       'industry', 'website', 'bannerUrl', 'avatarUrl', 'theme', 'email',
-      'location', 'customSlug', 'exclusiveBadge', 'createdAt'
+      'location', 'customSlug', 'exclusiveBadge', 'createdAt',
+      'calendlyLink'
     ];
     eliteRequired.forEach(f => {
       if (eliteProfile[f] === undefined) eliteProfile[f] = null;

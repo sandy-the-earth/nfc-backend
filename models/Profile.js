@@ -77,6 +77,12 @@ const profileSchema = new mongoose.Schema({
     default: ''
   },
 
+  // Calendly integration for meeting scheduling
+  calendlyLink: {
+    type: String,
+    default: ''
+  },
+
   // Social handles
   socialLinks: {
     instagram: { type: String, default: '' },
