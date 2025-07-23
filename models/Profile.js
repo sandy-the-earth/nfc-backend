@@ -129,7 +129,8 @@ const profileSchema = new mongoose.Schema({
       ip: String,
       userAgent: String,
       industry: { type: String, default: '' }, // Added for corporate insight
-      company: { type: String, default: '' }   // Optional
+      company: { type: String, default: '' },   // Optional
+      location: { type: String, default: '' }   // New: location (city/country/etc.)
     }
   ],
   contactSaves: {

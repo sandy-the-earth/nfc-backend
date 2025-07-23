@@ -64,6 +64,14 @@ router.get('/:activationCode/insights', async (req, res) => {
       }
     }
 
+    // Location aggregation for all profiles
+    let locationAggregation = {};
+    for (const v of profile.views) {
+      if (v.location && v.location.trim()) {
+        locationAggregation[v.location] = (locationAggregation[v.location] || 0) + 1;
+      }
+    }
+
     const responseObj = {
       totalViews: profile.views.length,
       uniqueVisitors: uniqueSet.size,
@@ -77,7 +85,8 @@ router.get('/:activationCode/insights', async (req, res) => {
       linkClicks: linkClicksObj,
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt,
-      ...(industryAggregation ? { viewsByIndustry: industryAggregation } : {})
+      ...(industryAggregation ? { viewsByIndustry: industryAggregation } : {}),
+      ...(Object.keys(locationAggregation).length ? { viewsByLocation: locationAggregation } : {})
     };
     res.json(responseObj);
   } catch (err) {
@@ -168,7 +177,7 @@ router.post('/:activationCode/contact-download', async (req, res) => {
 // POST /api/public/:activationCode/view - Record a profile view with industry/company for Corporate
 router.post('/:activationCode/view', async (req, res) => {
   try {
-    const { industry, company } = req.body;
+    const { industry, company, location } = req.body;
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const userAgent = req.headers['user-agent'] || '';
 
@@ -200,7 +209,8 @@ router.post('/:activationCode/view', async (req, res) => {
       ip,
       userAgent,
       industry: '',
-      company: ''
+      company: '',
+      location: location || ''
     };
     
     // Only save industry/company if plan is Corporate or Elite
