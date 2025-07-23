@@ -177,6 +177,12 @@ const profileSchema = new mongoose.Schema({
   active: {
     type: Boolean,
     default: true
+  },
+
+  qrType: {
+    type: String,
+    enum: ['url', 'vcard'],
+    default: 'url'
   }
 
 }, { timestamps: true });

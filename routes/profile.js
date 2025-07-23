@@ -65,7 +65,7 @@ router.get('/:id', async (req, res) => {
         expiresAt: null
       };
     }
-    res.json({ ...profile.toObject(), slug, subscription });
+    res.json({ ...profile.toObject(), slug, subscription, qrType: profile.qrType });
   } catch (err) {
     console.error('Error fetching profile:', err);
     res.status(500).json({ message: 'Server error' });
@@ -78,16 +78,25 @@ router.put('/:id', async (req, res) => {
     const {
       name, title, subtitle, tags, bio,
       location, phone, website, socialLinks,
-      ownerEmail, industry, calendlyLink
+      ownerEmail, industry, calendlyLink, qrType
     } = req.body;
+
+    // Validate qrType if present
+    let updateFields = {
+      name, title, subtitle, tags, bio,
+      location, phone, website, socialLinks,
+      ownerEmail, industry, calendlyLink
+    };
+    if (qrType !== undefined) {
+      if (qrType !== 'url' && qrType !== 'vcard') {
+        return res.status(400).json({ message: "qrType must be 'url' or 'vcard'" });
+      }
+      updateFields.qrType = qrType;
+    }
 
     const profile = await Profile.findByIdAndUpdate(
       req.params.id,
-      {
-        name, title, subtitle, tags, bio,
-        location, phone, website, socialLinks,
-        ownerEmail, industry, calendlyLink
-      },
+      updateFields,
       { new: true }
     );
 
