@@ -32,7 +32,7 @@ const plans = [
             title: 'Custom Avatar & Banner Uploads',
         },
         {
-          title: '3 Theme Styles',
+          title: '3 Theme Styles**',
           detail: 'Choose from Classic or Chrome, each in 3 accent colors'
         },
         {
@@ -67,7 +67,7 @@ const plans = [
           detail: 'Break down views by sector, Contact download counts, Profile last viewed info, etc.,'
         },
         {
-            title: '7 Theme Styles',
+            title: '7 Theme Styles**',
             detail: 'Choose from Classic or Chrome, each in 7 accent colors'
         },
         {
@@ -93,7 +93,7 @@ const plans = [
           detail: 'Pinpoint your top–performing links, Founder-level insights and lot more'
         },
         {
-          title: 'In-profile calendar integration',
+          title: 'In-profile calendar integration**',
         },
         {
           title: 'Unlimited Contact Exchanges'
@@ -102,7 +102,7 @@ const plans = [
           title: 'Elite membership badge'
         },
         {
-          title: 'Full Profile Customization',
+          title: 'Full Profile Customization**',
           detail: 'Design your profile with expert selected color palette & materials'
         },
         {
