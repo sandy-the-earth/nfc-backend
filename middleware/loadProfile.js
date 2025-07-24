@@ -23,8 +23,25 @@ function loadProfile(req, res, next) {
       profile.views = [];
     }
     
-    profile.views.push({ date: new Date(), ip, userAgent });
-    profile.lastViewedAt = new Date();
+    const fullProfile = profile.toObject();
+    const moment = require('moment-timezone');
+
+    fullProfile.slug = profile.customSlug || profile.activationCode;
+    fullProfile.email = profile.ownerEmail || '';
+
+    // Format lastViewedAt in DD_MM_YYYY (IST)
+    if (profile.lastViewedAt) {
+      fullProfile.lastViewedAtFormatted = moment(profile.lastViewedAt).tz('Asia/Kolkata').format('DD_MM_YYYY');
+    }
+
+    // Format all view dates
+    if (Array.isArray(fullProfile.views)) {
+      fullProfile.views = fullProfile.views.map(view => ({
+        ...view,
+        formattedDate: moment(view.date).tz('Asia/Kolkata').format('DD_MM_YYYY'),
+      }));
+    }
+
     
     // Save the profile with view tracking
     return profile.save().then(() => {
