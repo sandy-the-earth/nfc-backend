@@ -11,4 +11,6 @@ services:
       - 11200:5000
     volumes:
       - ./nfc_backend:/root/nfc_backend
+    cpus: 1.0
+    mem_limit: 512m
 
