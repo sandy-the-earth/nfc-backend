@@ -2,8 +2,14 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const https = require("https");
 
 // Load environment variables
+// Load certificate
+const options = {
+  key: fs.readFileSync("ssl/key.pem"),
+  cert: fs.readFileSync("ssl/cert.pem"),
+};
 dotenv.config();
 
 const app = express();
