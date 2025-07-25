@@ -1,0 +1,14 @@
+version: "3.1"
+
+services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: nfc_backend
+    restart: always
+    ports:
+      - 11200:5000
+    volumes:
+      - ./nfc_backend:/root/nfc_backend
+
